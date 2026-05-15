@@ -93,7 +93,7 @@ const dict: Record<string, Record<Locale, string>> = {
   'hero.title1': { 'pt-br': 'seu amigo IA', en: 'your AI buddy' },
   'hero.title2': { 'pt-br': 'que te acompanha.', en: 'that guides you.' },
   'hero.desc': {
-    'pt-br': 'o tico fica do lado do seu cursor, escuta suas perguntas, e te guia por qualquer coisa na tela. ele aponta pro lugar certo e fala em voz alto que fazer. tipo um amigo que manja de tudo.',
+    'pt-br': 'o tico fica do lado do seu cursor, escuta suas perguntas, e te guia por qualquer coisa na tela. ele aponta pro lugar certo e fala em voz alta oque fazer. tipo um amigo que manja de tudo.',
     en: 'tico stays next to your cursor, listens to your questions, and guides you through anything on screen. it points to the right spot and tells you what to do. like a friend who knows everything.',
   },
   'hero.downloadBtn': { 'pt-br': 'baixar para windows', en: 'download for windows' },
