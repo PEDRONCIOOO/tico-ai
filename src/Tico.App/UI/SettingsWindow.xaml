@@ -1,0 +1,145 @@
+<Window x:Class="Tico.App.UI.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Tico"
+        Width="320" SizeToContent="Height"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        Topmost="True"
+        ShowInTaskbar="False">
+    <Border Background="#171918" CornerRadius="12" BorderBrush="#1A1A1A" BorderThickness="1"
+            Margin="8">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.5" Color="Black"/>
+        </Border.Effect>
+        <StackPanel>
+            <!-- Header -->
+            <DockPanel Margin="16,14">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="#10B981" Margin="0,0,8,0">
+                        <Ellipse.Effect>
+                            <DropShadowEffect BlurRadius="4" ShadowDepth="0" Opacity="0.6" Color="#10B981"/>
+                        </Ellipse.Effect>
+                    </Ellipse>
+                    <TextBlock Text="Tico" Foreground="#ECEEED" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </StackPanel>
+                <Button DockPanel.Dock="Right" HorizontalAlignment="Right" Click="OnClose"
+                        Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="0">
+                    <Grid Width="20" Height="20">
+                        <Ellipse Fill="#FFFFFF" Opacity="0.08"/>
+                        <TextBlock Text="&#x2715;" Foreground="#6B736F" FontSize="10" FontWeight="SemiBold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                </Button>
+            </DockPanel>
+
+            <!-- Divider -->
+            <Rectangle Height="1" Fill="#1E1E1E" Margin="16,0"/>
+
+            <!-- Account section -->
+            <StackPanel Margin="16,14,16,0">
+                <DockPanel>
+                    <TextBlock Text="CONTA" Foreground="#6B736F" FontSize="10" FontWeight="Bold"
+                               DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                    <Border x:Name="TierBadge" DockPanel.Dock="Right" HorizontalAlignment="Right"
+                            Background="#7C3AED22" CornerRadius="10" Padding="8,2">
+                        <TextBlock x:Name="TierText" Text="—" Foreground="#A78BFA"
+                                   FontSize="10" FontWeight="Bold"/>
+                    </Border>
+                </DockPanel>
+                <TextBlock x:Name="EmailText" Text="—" Foreground="#ECEEED" FontSize="13"
+                           FontWeight="Medium" Margin="0,6,0,0" TextTrimming="CharacterEllipsis"/>
+
+                <!-- Usage progress -->
+                <DockPanel Margin="0,10,0,0">
+                    <TextBlock x:Name="UsageText" Text="—" Foreground="#6B736F" FontSize="11"
+                               DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="UsageRemainingText" Text="" Foreground="#6B736F" FontSize="11"
+                               DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </DockPanel>
+                <Border Background="#2A2A2A" CornerRadius="2" Height="4" Margin="0,4,0,0">
+                    <Border x:Name="UsageBar" HorizontalAlignment="Left" Background="#7C3AED"
+                            CornerRadius="2" Width="0"/>
+                </Border>
+
+                <!-- Logout -->
+                <TextBlock Margin="0,10,0,0" HorizontalAlignment="Right" FontSize="11">
+                    <Hyperlink Click="OnLogout" Foreground="#6B736F" TextDecorations="None">
+                        sair da conta
+                    </Hyperlink>
+                </TextBlock>
+            </StackPanel>
+
+            <!-- Divider -->
+            <Rectangle Height="1" Fill="#1E1E1E" Margin="16,14,16,0"/>
+
+            <!-- Instruction -->
+            <TextBlock Text="Pressione F8 para falar." Foreground="#ADB5B2" FontSize="12"
+                       FontWeight="Medium" Margin="16,14,16,0"/>
+
+            <!-- Model Picker -->
+            <DockPanel Margin="16,14,16,0">
+                <TextBlock Text="Modelo" Foreground="#ADB5B2" FontSize="13" FontWeight="Medium"
+                           VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                <Border DockPanel.Dock="Right" HorizontalAlignment="Right"
+                        Background="#0F0F0F" CornerRadius="6"
+                        BorderBrush="#2A2A2A" BorderThickness="0.5">
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="BtnSonnet" Content="Sonnet" Click="OnSelectSonnet"
+                                Padding="10,5" Background="Transparent" Foreground="#6B736F"
+                                BorderThickness="0" FontSize="11" FontWeight="Medium" Cursor="Hand"/>
+                        <Button x:Name="BtnOpus" Content="Opus" Click="OnSelectOpus"
+                                Padding="10,5" Background="Transparent" Foreground="#6B736F"
+                                BorderThickness="0" FontSize="11" FontWeight="Medium" Cursor="Hand"/>
+                    </StackPanel>
+                </Border>
+            </DockPanel>
+
+            <!-- Show Tico Toggle -->
+            <DockPanel Margin="16,10,16,0">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                    <TextBlock Text="&#x1F441;" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="Mostrar Tico" Foreground="#ADB5B2" FontSize="13"
+                               FontWeight="Medium" VerticalAlignment="Center"/>
+                </StackPanel>
+                <CheckBox x:Name="ShowBuddyToggle" DockPanel.Dock="Right" HorizontalAlignment="Right"
+                          IsChecked="True" Checked="OnBuddyToggleChanged" Unchecked="OnBuddyToggleChanged"/>
+            </DockPanel>
+
+            <!-- Chat History Toggle -->
+            <DockPanel Margin="16,10,16,0">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                    <TextBlock Text="&#x1F4AC;" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="Historico de chat" Foreground="#ADB5B2" FontSize="13"
+                               FontWeight="Medium" VerticalAlignment="Center"/>
+                </StackPanel>
+                <CheckBox x:Name="ChatHistoryToggle" DockPanel.Dock="Right" HorizontalAlignment="Right"
+                          IsChecked="True" Checked="OnChatHistoryToggleChanged" Unchecked="OnChatHistoryToggleChanged"/>
+            </DockPanel>
+
+            <!-- Voice Picker -->
+            <DockPanel Margin="16,10,16,0">
+                <TextBlock Text="Voz" Foreground="#ADB5B2" FontSize="13" FontWeight="Medium"
+                           VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                <ComboBox x:Name="VoiceCombo" DockPanel.Dock="Right" HorizontalAlignment="Right"
+                          Width="180" Background="#0F0F0F" Foreground="#ADB5B2"
+                          BorderBrush="#2A2A2A" FontSize="11">
+                    <ComboBoxItem Content="Francisca (feminina)" Tag="pt-BR-FranciscaNeural" IsSelected="True"/>
+                    <ComboBoxItem Content="Antonio (masculino)" Tag="pt-BR-AntonioNeural"/>
+                    <ComboBoxItem Content="Thalita (feminina)" Tag="pt-BR-ThalitaNeural"/>
+                    <ComboBoxItem Content="Leila (feminina)" Tag="pt-BR-LeilaNeural"/>
+                </ComboBox>
+            </DockPanel>
+
+            <!-- Divider -->
+            <Rectangle Height="1" Fill="#1E1E1E" Margin="16,14,16,0"/>
+
+            <!-- Footer -->
+            <TextBlock Text="Tico v0.2" Foreground="#6B736F" FontSize="10"
+                       HorizontalAlignment="Center" Margin="16,10,16,12"/>
+        </StackPanel>
+    </Border>
+</Window>

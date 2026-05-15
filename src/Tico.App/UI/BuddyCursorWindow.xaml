@@ -1,0 +1,77 @@
+<Window x:Class="Tico.App.UI.BuddyCursorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        ResizeMode="NoResize"
+        Left="0" Top="0">
+    <Canvas x:Name="BuddyCanvas" ClipToBounds="False">
+        <!-- Waveform bars (5 bars, shown during recording) -->
+        <Canvas x:Name="WaveformCanvas" Visibility="Collapsed">
+            <Rectangle x:Name="Bar0" Width="2" Fill="#7C3AED" RadiusX="1" RadiusY="1"/>
+            <Rectangle x:Name="Bar1" Width="2" Fill="#7C3AED" RadiusX="1" RadiusY="1"/>
+            <Rectangle x:Name="Bar2" Width="2" Fill="#7C3AED" RadiusX="1" RadiusY="1"/>
+            <Rectangle x:Name="Bar3" Width="2" Fill="#7C3AED" RadiusX="1" RadiusY="1"/>
+            <Rectangle x:Name="Bar4" Width="2" Fill="#7C3AED" RadiusX="1" RadiusY="1"/>
+        </Canvas>
+
+        <!-- Spinner (shown during processing) -->
+        <Canvas x:Name="SpinnerCanvas" Visibility="Collapsed">
+            <Ellipse x:Name="SpinnerArc" Width="18" Height="18"
+                     StrokeThickness="2.5" Fill="Transparent"
+                     Stroke="#7C3AED" StrokeDashArray="4 2"
+                     StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                <Ellipse.RenderTransform>
+                    <RotateTransform x:Name="SpinnerRotation" CenterX="9" CenterY="9"/>
+                </Ellipse.RenderTransform>
+            </Ellipse>
+        </Canvas>
+
+        <!-- Glow effect -->
+        <Ellipse x:Name="GlowEllipse" Width="50" Height="50" Opacity="0.3">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop x:Name="GlowColor" Color="#7C3AED" Offset="0"/>
+                    <GradientStop Color="Transparent" Offset="1"/>
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+
+        <!-- Main buddy body -->
+        <Ellipse x:Name="BuddyBody" Width="30" Height="30">
+            <Ellipse.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop x:Name="GradientStart" Color="#7C3AED" Offset="0"/>
+                    <GradientStop x:Name="GradientEnd" Color="#A855F7" Offset="1"/>
+                </LinearGradientBrush>
+            </Ellipse.Fill>
+            <Ellipse.Effect>
+                <DropShadowEffect x:Name="BodyShadow" BlurRadius="16" ShadowDepth="0" Opacity="0.5" Color="#7C3AED"/>
+            </Ellipse.Effect>
+            <Ellipse.RenderTransform>
+                <ScaleTransform x:Name="BodyScale" CenterX="18" CenterY="18" ScaleX="1" ScaleY="1"/>
+            </Ellipse.RenderTransform>
+        </Ellipse>
+
+        <!-- Left eye -->
+        <Ellipse x:Name="LeftEye" Width="5" Height="5" Fill="White"/>
+        <!-- Right eye -->
+        <Ellipse x:Name="RightEye" Width="5" Height="5" Fill="White"/>
+
+        <!-- Speech bubble -->
+        <Border x:Name="SpeechBubble" Visibility="Collapsed"
+                Background="#7C3AED" CornerRadius="6" Padding="8,4">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="6" ShadowDepth="0" Opacity="0.3" Color="#7C3AED"/>
+            </Border.Effect>
+            <Border.RenderTransform>
+                <ScaleTransform x:Name="BubbleScale" ScaleX="0.5" ScaleY="0.5"/>
+            </Border.RenderTransform>
+            <TextBlock x:Name="BubbleText" Foreground="White" FontSize="11" FontWeight="Medium"/>
+        </Border>
+    </Canvas>
+</Window>

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.abacatepay.com)",
+      "Bash(dotnet build:*)",
+      "Bash(ls -la \"C:\\\\Users\\\\pedro\\\\TicoAI\\\\src\\\\Tico.App\"\" | grep -E \"^- \")",
+      "Bash(dotnet test:*)"
+    ]
+  }
+}

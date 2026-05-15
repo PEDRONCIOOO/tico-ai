@@ -1,0 +1,25 @@
+<Window x:Class="Tico.App.UI.ChatHistoryButton"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        ResizeMode="NoResize"
+        Width="40" Height="40">
+    <Border x:Name="ButtonBorder" CornerRadius="20"
+            Background="#CC171918" BorderBrush="#333333" BorderThickness="1"
+            Cursor="Hand" MouseLeftButtonDown="OnClick"
+            ToolTip="historico de chat">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.4" Color="Black"/>
+        </Border.Effect>
+        <Grid>
+            <TextBlock Text="&#x1F4AC;" FontSize="16"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Foreground="#A78BFA"/>
+        </Grid>
+    </Border>
+</Window>
