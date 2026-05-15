@@ -314,8 +314,7 @@ async function handleTranscribe(req, res, userId) {
       `curl -s -X POST "https://api.openai.com/v1/audio/transcriptions" ` +
       `-H "Authorization: Bearer ${OPENAI_API_KEY.trim()}" ` +
       `-F "file=@${tmpFile}" ` +
-      `-F "model=whisper-1" ` +
-      `-F "language=pt"`,
+      `-F "model=whisper-1"`,
       { encoding: "utf-8", timeout: 30000 }
     );
 

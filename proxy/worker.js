@@ -26,8 +26,8 @@
 // ─── Security constants ──────────────────────────────────────────────
 
 const ALLOWED_ORIGINS = new Set([
-  "https://tico.app",
-  "https://www.tico.app",
+  "https://ticoai.app",
+  "https://www.ticoai.app",
 ]);
 
 const rateLimitMap = new Map();
@@ -263,7 +263,6 @@ async function handleTranscribe(request, env, _userId, cors) {
   const whisperForm = new FormData();
   whisperForm.append("file", audioFile, "audio.wav");
   whisperForm.append("model", "whisper-1");
-  whisperForm.append("language", "pt");
 
   const whisperResponse = await fetch("https://api.openai.com/v1/audio/transcriptions", {
     method: "POST",

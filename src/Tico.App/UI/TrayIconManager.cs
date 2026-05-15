@@ -62,6 +62,23 @@ public class TrayIconManager : IDisposable
         return Icon.FromHandle(bmp.GetHicon());
     }
 
+    public void ShowUpdateNotification(string version, string url)
+    {
+        _trayIcon.TrayBalloonTipClicked += OnUpdateBalloonClicked;
+        _trayIcon.Tag = url;
+        _trayIcon.ShowBalloonTip(
+            "Tico — Atualização disponível",
+            $"Versão {version} disponível. Clique para baixar.",
+            BalloonIcon.Info);
+    }
+
+    private void OnUpdateBalloonClicked(object? sender, RoutedEventArgs e)
+    {
+        _trayIcon.TrayBalloonTipClicked -= OnUpdateBalloonClicked;
+        if (_trayIcon.Tag is string url)
+            Services.UpdateChecker.OpenDownloadPage(url);
+    }
+
     public void Dispose()
     {
         _trayIcon.Dispose();

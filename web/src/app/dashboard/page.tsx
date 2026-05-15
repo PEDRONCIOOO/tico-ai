@@ -275,7 +275,7 @@ function DashboardContent() {
                 <h2 className="font-bold text-lg mb-1" style={{ fontFamily: 'Bricolage Grotesque, sans-serif' }}>{t('dash.download', locale)}</h2>
                 <p className="text-white/70 text-sm">{t('dash.downloadDesc', locale)}</p>
               </div>
-              <a href="https://github.com/pfrfromperu/tico/releases/latest/download/TicoSetup.exe" className="bg-white text-[#5B21B6] px-6 py-3 rounded-xl font-semibold text-sm hover:bg-gray-100 transition flex items-center gap-2 shrink-0">
+              <a href="https://dl.ticoai.app/TicoSetup.exe" className="bg-white text-[#5B21B6] px-6 py-3 rounded-xl font-semibold text-sm hover:bg-gray-100 transition flex items-center gap-2 shrink-0">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" />
                 </svg>

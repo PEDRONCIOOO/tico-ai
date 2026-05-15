@@ -1,6 +1,17 @@
 # Tico — seu buddy de IA no Windows
 
-Tico é um assistente de IA que vive na tela do usuário. Ele segue o cursor como um companheiro, ouve perguntas por voz, vê a tela via screenshot, e responde em voz alta apontando para elementos na tela.
+Tico é um assistente de IA que vive na tela do usuário. Ele segue o cursor como um companheiro, ouve perguntas por voz, vê a tela via screenshot, e responde em voz alta apontando para elementos na tela. Suporta múltiplos idiomas — responde na mesma língua do usuário.
+
+## URLs de produção
+
+| Serviço | URL | Hospedagem |
+|---------|-----|------------|
+| Landing + Dashboard + Webhooks | `https://ticoai.app` | Vercel |
+| API Proxy (Claude, Whisper, TTS) | `https://api.ticoai.app` | Cloudflare Worker |
+| Downloads (installer + version.json) | `https://dl.ticoai.app` | Cloudflare R2 (bucket: `tico-downloads`) |
+| Auth + Database | `https://tzpwebrpnqqygzpqxznb.supabase.co` | Supabase |
+| Pagamento PIX | AbacatePay (webhook v2) | AbacatePay |
+| Pagamento Cartão (USD) | Stripe | Stripe |
 
 ## Arquitetura
 
@@ -9,10 +20,10 @@ Tico é um assistente de IA que vive na tela do usuário. Ele segue o cursor com
 │   Tico.App (WPF)     │  Windows desktop — buddy cursor, hotkey F8,
 │   C# .NET 8          │  captura de tela + áudio, TTS playback
 └──────────┬───────────┘
-           │ HTTP (Bearer JWT)
+           │ HTTPS (Bearer JWT)
            ▼
 ┌──────────────────────┐
-│   Proxy              │  Node.js (local dev) ou Cloudflare Worker (prod)
+│   api.ticoai.app     │  Cloudflare Worker (prod) / Node.js (dev local)
 │   /chat /transcribe  │  Roteia pra Claude, Whisper, ElevenLabs TTS
 │   /tts /usage        │  Valida JWT do Supabase, enforça limites de uso
 └──────────┬───────────┘
@@ -22,11 +33,13 @@ Tico é um assistente de IA que vive na tela do usuário. Ele segue o cursor com
  Anthropic     OpenAI        ElevenLabs
  Claude API    Whisper       TTS (Flash v2.5)
 
-┌──────────────────────┐
-│   Web (Next.js 16)   │  Landing, login, register, dashboard, /upgrade
-│   + Supabase         │  Auth, profiles, usage tracking, payments
-│   + AbacatePay       │  PIX + Cartão, webhooks
-└──────────────────────┘
+┌──────────────────────────────────────────────┐
+│   ticoai.app (Next.js 16 + Supabase SSR)     │
+│   Landing, login, register, dashboard,       │
+│   /upgrade, webhooks (Stripe + AbacatePay)   │
+│   i18n (PT-BR + EN), locale toggle           │
+│   Pagamento dual: PIX (BRL) + Card (USD)     │
+└──────────────────────────────────────────────┘
 ```
 
 ## Componentes
@@ -36,41 +49,63 @@ Tico é um assistente de IA que vive na tela do usuário. Ele segue o cursor com
 | Pasta | Descrição |
 |-------|-----------|
 | `Core/` | CompanionManager (state machine principal), CompanionState, ConversationHistory |
-| `Services/` | AuthService (Supabase REST), TokenStore (DPAPI), SessionManager, ProxyClient, AudioCaptureService, ScreenCaptureService, PointingManager (v1 coord-based + v2 ID-based), OmniParserClient (parse UI elements), ElementListFormatter (format element list pro prompt), WindowsSpeechService, HotkeyService |
-| `UI/` | BuddyCursorWindow (buddy cursor com spring physics + Bézier flight + waveform + spinner + speech bubbles), OverlayWindow (glow underline), SettingsWindow (model/voz/conta/uso/logout), LoginWindow (email/senha), TrayIconManager |
+| `Services/` | AuthService (Supabase REST), TokenStore (DPAPI), SessionManager, ProxyClient, AudioCaptureService, ScreenCaptureService, PointingManager (v1 coord-based + v2 ID-based), OmniParserClient, ElementListFormatter, WindowsSpeechService, HotkeyService, UpdateChecker (verifica `dl.ticoai.app/version.json` no startup) |
+| `UI/` | BuddyCursorWindow (spring physics + Bézier flight + waveform + spinner + speech bubbles), OverlayWindow (glow underline), SettingsWindow, LoginWindow, TrayIconManager (inclui notificação de update), ChatHistoryButton, ChatHistoryWindow |
 | `Helpers/` | AudioHelper (TTS playback), CursorHelper (P/Invoke GetCursorPos), ImageHelper (screen capture + DPI + downscale) |
-| `Config/` | AppSettings (JSON em %APPDATA%\Tico, Supabase URL/key, proxy URL, hotkey, model, voz) |
+| `Config/` | AppSettings (JSON em `%APPDATA%\Tico/settings.json`) |
+
+**Defaults de produção em AppSettings:**
+- `ProxyBaseUrl` = `https://api.ticoai.app`
+- `WebBaseUrl` = `https://ticoai.app`
+- `SupabaseUrl` = `https://tzpwebrpnqqygzpqxznb.supabase.co`
 
 ### `proxy/` — Proxy server
 
 | Arquivo | Descrição |
 |---------|-----------|
-| `local-server.js` | Dev proxy (Node.js, porta 3000). Rotas: `/chat`, `/transcribe`, `/tts`, `/usage`. Auth via Supabase JWT, usage via RPCs `check_usage`/`increment_usage`. Só `/chat` conta como uso. |
-| `worker.js` | Cloudflare Worker (produção). Mesma lógica do local-server. |
-| `wrangler.toml` | Config do worker. Secrets via `wrangler secret put`. |
-| `.env` / `.env.example` | Env vars: ANTHROPIC_API_KEY, OPENAI_API_KEY, ELEVENLABS_API_KEY, ELEVENLABS_VOICE_ID, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY |
+| `local-server.js` | Dev proxy (Node.js, porta 3000). Rotas: `/chat`, `/transcribe`, `/tts`, `/usage`. |
+| `worker.js` | Cloudflare Worker (produção). Mesma lógica. CORS: `ticoai.app`. |
+| `wrangler.toml` | Config do worker (`tico-proxy`). Secrets via `wrangler secret put`. |
+| `.env` | Env vars locais (gitignored). |
+
+**Secrets do Worker (6):** `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+
+**Whisper:** auto-detect de idioma (sem `language` hardcoded) — suporta qualquer língua.
 
 ### `web/` — Site (Next.js 16 + Supabase + Tailwind 4)
 
 | Rota | Descrição |
 |------|-----------|
-| `/` | Landing page com buddy animado, pricing, features |
+| `/` | Landing page com buddy animado, pricing, features, i18n (PT/EN) |
 | `/login` | Login email/senha via Supabase auth |
 | `/register` | Cadastro com nome, email, senha |
-| `/dashboard` | Perfil, uso, plano, próximo pagamento, histórico de pagamentos, feedback, download, token do app |
-| `/upgrade` | 3 planos (Free/Pro/Unlimited), checkout via AbacatePay SDK |
-| `/api/checkout/create-subscription` | Cria billing no AbacatePay, retorna URL de checkout |
-| `/api/webhook/abacatepay` | Recebe webhooks v1 (billing.paid, refunded, subscription.canceled), atualiza tier |
+| `/dashboard` | Perfil, uso, plano, pagamentos, feedback, download, token, gerenciar assinatura (Stripe portal) |
+| `/upgrade` | 3 planos (Free/Pro/Unlimited), checkout dual: PIX (AbacatePay) + Card (Stripe) |
+| `/api/checkout/create-subscription` | Cria checkout PIX ou Stripe conforme `paymentMethod` |
+| `/api/checkout/customer-portal` | Cria sessão do Stripe Customer Portal (gerenciar/cancelar assinatura) |
+| `/api/webhook/abacatepay` | Webhook v1/v2 (billing.paid, refunded, subscription.canceled) |
+| `/api/webhook/stripe` | Webhook Stripe (checkout.session.completed, invoice.paid, customer.subscription.deleted/updated) |
+
+**i18n:** `src/lib/i18n.ts` com ~120 chaves em PT-BR e EN. Toggle PT/EN na nav de todas as páginas. Detecção automática via `Accept-Language` header + cookie `locale` override.
+
+**Componentes i18n:** `src/components/LocaleToggle.tsx` — toggle discreto PT/EN usado nas 3 páginas.
 
 ### `web/supabase/` — Schema e migrations
 
 | Tabela | Descrição |
 |--------|-----------|
-| `profiles` | Extends auth.users: email, display_name, tier (free/pro/unlimited), subscription_id, subscription_status, abacatepay_customer_id, pending_plan, current_period_end |
+| `profiles` | Extends auth.users: email, display_name, tier, subscription_id, subscription_status, pending_plan, current_period_end, abacatepay_customer_id, **stripe_customer_id**, **payment_provider** |
 | `usage` | Contagem de uso por período (unique constraint em user_id + period_start) |
-| `webhook_events` | Idempotência de webhooks (PK = event id) |
-| `payments` | Histórico de pagamentos (billing_id, amount, plan, paid_at) |
+| `webhook_events` | Idempotência de webhooks (PK = event id, formato: `stripe:<event.id>` ou `<event>:<data.id>`) |
+| `payments` | Histórico de pagamentos (billing_id, amount, plan, paid_at, **provider**, **currency**) |
 | `feedback` | Mensagens dos usuários (user_id, email, message) |
+
+**Migrations:**
+1. `0001_usage_unique_and_upsert.sql`
+2. `0002_abacatepay.sql`
+3. `0003_payments_history.sql`
+4. `0004_feedback.sql`
+5. `0005_stripe_provider.sql` — adiciona `stripe_customer_id`, `payment_provider` em profiles + `provider`, `currency` em payments
 
 RPCs: `check_usage(p_user_id)` retorna tier/used/limit/remaining/allowed. `increment_usage(p_user_id)` faz upsert atômico.
 
@@ -82,41 +117,106 @@ RPCs: `check_usage(p_user_id)` retorna tier/used/limit/remaining/allowed. `incre
 
 Repositório do Clicky (app macOS original) mantido como referência de design. Não é buildado — só consultado.
 
-### `docs/superpowers/specs/`
-
-| Spec | Status |
-|------|--------|
-| `2026-04-08-puckswin-clicky-rewrite.md` | **Ativo** — define spring physics, Bézier flight, POINT tag protocol, system prompt PT-BR |
-| `2026-04-08-puckswin-v2-enhancements.md` | Superseded pelo clicky-rewrite |
-| `2026-04-14-omniparser-integration-design.md` | **Ativo** — OmniParser v2 pra detecção de elementos UI, substitui `/locate`, match por ID |
-
 ## Tiers e Preços
 
-| Tier | Preço | Usos | Período |
-|------|-------|------|---------|
-| `free` | R$0 | 10/dia | Reseta diariamente |
-| `pro` | R$45/mês | 500/mês | Reseta mensalmente |
-| `unlimited` | R$99,90/mês | Ilimitado | — |
+| Tier | BRL (PIX) | USD (Card) | Usos | Período |
+|------|-----------|------------|------|---------|
+| `free` | R$0 | — | 10/dia | Reseta diariamente |
+| `pro` | R$45/mês | $9.99/mo | 500/mês | Reseta mensalmente |
+| `unlimited` | R$99,90/mês | $19.99/mo | Ilimitado | — |
 
-Pagamento via **AbacatePay** (PIX + Cartão de Crédito).
+**PIX:** AbacatePay (BRL). **Card:** Stripe (USD). Checkout unificado via `/api/checkout/create-subscription`.
+
+**Stripe Dashboard:**
+- Products: Tico Pro ($9.99/mo) e Tico Unlimited ($19.99/mo)
+- Webhook: `https://ticoai.app/api/webhook/stripe` — 4 eventos: `checkout.session.completed`, `invoice.paid`, `customer.subscription.deleted`, `customer.subscription.updated`
+- Customer Portal: ativo (ver faturas, atualizar pagamento, cancelar)
+
+## Fluxo de pagamento
+
+```
+Usuário clica "PIX · R$45" ou "Card · $9.99"
+         │
+         ▼
+POST /api/checkout/create-subscription
+   { plan: "pro", paymentMethod: "pix" | "card" }
+         │
+    ┌────┴────┐
+    ▼         ▼
+AbacatePay   Stripe
+checkout     checkout
+    │         │
+    ▼         ▼
+Webhook      Webhook
+/abacatepay  /stripe
+    │         │
+    └────┬────┘
+         ▼
+activateSubscription() — shared function
+   → profiles.tier = plan
+   → profiles.subscription_status = 'active'
+   → profiles.payment_provider = 'abacatepay' | 'stripe'
+   → payments insert (amount, currency, provider)
+```
+
+## Update checker (auto-notificação)
+
+O app verifica `https://dl.ticoai.app/version.json` 3s após o startup. Se houver versão mais nova, mostra mensagem no buddy + notificação clicável no tray que abre o browser pro download.
+
+**`version.json` format:**
+```json
+{"version":"1.0.0","url":"https://dl.ticoai.app/TicoSetup.exe"}
+```
+
+**Versão atual do app:** definida em `src/Tico.App/Tico.App.csproj` → `<Version>1.0.0</Version>`
+
+### Como lançar um update
+
+```bash
+# 1. Bump version no .csproj
+#    <Version>1.1.0</Version>
+
+# 2. Publish + build installer
+dotnet publish src/Tico.App/Tico.App.csproj -c Release -r win-x64 --self-contained -o ./publish
+"/c/Users/pedro/AppData/Local/Programs/Inno Setup 6/ISCC.exe" installer.iss
+
+# 3. Upload installer e version.json pro R2
+npx wrangler r2 object put tico-downloads/TicoSetup.exe --file=output/TicoSetup.exe --content-type="application/octet-stream" --remote
+# Atualizar output/version.json com a nova versão
+npx wrangler r2 object put tico-downloads/version.json --file=output/version.json --content-type="application/json" --remote
+```
+
+### Como redeploy o Worker
+
+```bash
+cd proxy
+npx wrangler deploy
+```
+
+### Como redeploy o Web
+
+Push para o repositório → Vercel rebuilda automaticamente.
+
+## Installer
+
+**Inno Setup 6** — gera `output/TicoSetup.exe` (~53MB). Script em `installer.iss`.
+
+- Self-contained .NET 8 (win-x64)
+- Instala em `%LOCALAPPDATA%\Programs\Tico` (não requer admin)
+- Opções: atalho na área de trabalho, iniciar com Windows
+- Abre o app após instalar
 
 ## Setup local (dev)
 
 ### Pré-requisitos
 - .NET 8 SDK (Windows)
 - Node.js 20+
-- Conta ElevenLabs com API key (pra TTS)
+- Conta ElevenLabs com API key
 - Conta Supabase com o schema aplicado
-- Conta AbacatePay (pra testar pagamentos)
+- Conta AbacatePay (PIX) + Conta Stripe (Card)
 
 ### 1. Supabase
-Aplique os migrations em ordem no SQL Editor:
-- `web/supabase/migrations/0001_usage_unique_and_upsert.sql`
-- `web/supabase/migrations/0002_abacatepay.sql`
-- `web/supabase/migrations/0003_payments_history.sql`
-- `web/supabase/migrations/0004_feedback.sql`
-
-Ou use `web/supabase/schema.sql` pra fresh install.
+Aplique os migrations em ordem no SQL Editor (0001 a 0005) ou use `web/supabase/schema.sql` pra fresh install.
 
 ### 2. Proxy
 ```bash
@@ -130,15 +230,30 @@ node local-server.js
 ```bash
 cd web
 cp .env.example .env
-# Edite .env com suas chaves
+# Edite .env com suas chaves (Supabase + AbacatePay + Stripe)
 npm install
 npm run dev
+```
+
+**Env vars necessárias no web/.env:**
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+ABACATEPAY_API_TOKEN=
+ABACATEPAY_WEBHOOK_SECRET=
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_PRO=price_...
+STRIPE_PRICE_UNLIMITED=price_...
+NEXT_PUBLIC_WEB_BASE_URL=http://localhost:3001
 ```
 
 ### 4. App desktop
 ```bash
 dotnet run --project src/Tico.App/Tico.App.csproj
 ```
+Para dev local, editar `%APPDATA%/Tico/settings.json` e trocar `proxyBaseUrl` para `http://localhost:3000`.
 
 ### 5. Testes
 ```bash
@@ -168,158 +283,112 @@ Desktop App          Web App              Proxy (CF Worker)
            │                               Rota autorizada
 ```
 
-Toda request ao proxy exige `Authorization: Bearer <jwt>`. O proxy valida o token contra Supabase em cada request — não há cache de sessão server-side.
-
 ### Proteção de dados
 
 | Camada | Mecanismo | Detalhe |
 |--------|-----------|---------|
-| **Desktop token** | Windows DPAPI | `DataProtectionScope.CurrentUser` — encriptado por usuário/máquina em `%APPDATA%\Tico\session.dat` |
-| **Web session** | Supabase SSR cookies | `httpOnly`, refresh automático via `middleware.ts` em cada request |
-| **Service role key** | Server-side only | Nunca exposta ao browser ou ao desktop app — usada apenas no proxy e API routes |
-| **Supabase anon key** | Pública por design | Hardcoded em `AppSettings.cs` — permite apenas operações autenticadas (RLS ativo) |
-| **Secrets do proxy** | Environment variables | `.env` local, `wrangler secret put` em produção — gitignored |
+| **Desktop token** | Windows DPAPI | `DataProtectionScope.CurrentUser` em `%APPDATA%\Tico\session.dat` |
+| **Web session** | Supabase SSR cookies | `httpOnly`, refresh automático via `middleware.ts` |
+| **Service role key** | Server-side only | Proxy + API routes apenas |
+| **Supabase anon key** | Pública por design | Hardcoded em `AppSettings.cs` — RLS ativo |
+| **Secrets do proxy** | Environment variables | `.env` local, `wrangler secret put` em prod |
 
 ### CORS
 
-| Ambiente | Política | Origens permitidas |
-|----------|----------|--------------------|
-| **Produção** (worker.js) | Whitelist | `https://tico.app`, `https://www.tico.app` |
-| **Local** (local-server.js) | Localhost only | `http://localhost:*` |
-
-O desktop app (WPF/HttpClient) não envia header `Origin` — CORS não se aplica. Requests de browsers em origens não autorizadas são bloqueados pela ausência do header `Access-Control-Allow-Origin` na resposta.
+| Ambiente | Origens permitidas |
+|----------|--------------------|
+| **Produção** (worker.js) | `https://ticoai.app`, `https://www.ticoai.app` |
+| **Local** (local-server.js) | `http://localhost:*` |
 
 ### Rate limiting
 
-| Camada | Tipo | Limite | Escopo |
-|--------|------|--------|--------|
-| **Per-IP** | Sliding window (in-memory) | 60 req/min | Todas as rotas do proxy |
-| **Per-user (tier)** | Supabase RPCs | free: 10/dia, pro: 500/mês, unlimited: sem limite | Apenas `/chat` |
-
-Rate limiting por IP protege contra brute-force e abuse de rede. Rate limiting por tier (usage) protege contra uso excessivo por usuário autenticado.
-
-### Proteção contra injection
-
-| Vetor | Proteção | Arquivo |
-|-------|----------|---------|
-| **XSS** (web) | CSP header (`script-src 'self'`, `frame-ancestors 'none'`) | `next.config.ts` |
-| **Clickjacking** | `X-Frame-Options: DENY` + `frame-ancestors 'none'` | `next.config.ts` |
-| **MIME sniffing** | `X-Content-Type-Options: nosniff` | `next.config.ts` |
-
-### Security headers (Next.js)
-
-Headers configurados em `next.config.ts` para todas as rotas:
-
-- `Content-Security-Policy` — restringe scripts, styles, connections, frames
-- `X-Frame-Options: DENY` — bloqueia embedding em iframes
-- `X-Content-Type-Options: nosniff` — previne MIME type sniffing
-- `Referrer-Policy: strict-origin-when-cross-origin` — limita leak de referrer
-- `Permissions-Policy: camera=(), microphone=(), geolocation=()` — desativa APIs desnecessárias no browser
-- `Strict-Transport-Security: max-age=31536000; includeSubDomains` — força HTTPS
+| Camada | Limite | Escopo |
+|--------|--------|--------|
+| **Per-IP** | 60 req/min | Todas as rotas do proxy |
+| **Per-user (tier)** | free: 10/dia, pro: 500/mês, unlimited: ilimitado | Apenas `/chat` |
 
 ### Webhook verification
 
-Webhooks da AbacatePay são verificados por duas vias (qualquer uma válida):
-1. **HMAC-SHA256** — `X-Webhook-Signature` header, comparado com `crypto.timingSafeEqual()` (previne timing attacks)
-2. **Query string secret** — fallback via `?webhookSecret=...`
+**AbacatePay:** HMAC-SHA256 (`X-Webhook-Signature`) OU query string secret. `crypto.timingSafeEqual()`.
 
-Idempotência garantida via tabela `webhook_events` (PK = event id) — reprocessar o mesmo webhook é no-op.
+**Stripe:** `stripe.webhooks.constructEvent()` com `STRIPE_WEBHOOK_SECRET` (signing secret).
 
-### Senhas
+Idempotência: tabela `webhook_events` (PK = event id) — reprocessar é no-op.
 
-Mínimo de **8 caracteres** validado no frontend (register) e enforçado pelo Supabase Auth no backend.
+### Security headers (Next.js)
+
+`Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`.
 
 ## Regras de código e boas práticas
 
 ### C# (Tico.App)
 - **Namespace** = `Tico.App.*` (Config, Core, Services, UI, Helpers)
-- **Dependency injection manual** via construtores (sem container IoC — o app é simples o suficiente)
+- **DI manual** via construtores (sem container IoC)
 - **Interfaces pra serviços mockáveis**: IAudioCaptureService, IScreenCaptureService, IProxyClient, IAuthService, ISessionProvider
-- **InternalsVisibleTo** de Tico.App → Tico.Tests pra testar helpers internos (ex: ComputeRmsPower)
-- **Testes**: lógica pura em métodos static (ParseSession, ParseUsage, IsExpired, ParsePointTag, ComputeRmsPower) testados unitariamente; integração HTTP mockada via NSubstitute nas interfaces
-- **Threading**: NAudio callbacks rodam em worker thread. Audio power (double) é atomic em x64 — não precisa de Dispatcher.Invoke. Mas UI updates (ShowSpeechBubble, UpdateState) DEVEM usar Dispatcher.Invoke
-- **Async/sync boundary**: NUNCA usar `.GetAwaiter().GetResult()` na UI thread do WPF (deadlock). Use `Task.Run(() => ...).GetAwaiter().GetResult()` ou async void event handlers
-- **DPAPI** pra tokens (DataProtectionScope.CurrentUser) — encripta no %APPDATA%\Tico\session.dat
+- **Testes**: lógica pura em métodos static testados unitariamente; HTTP mockado via NSubstitute
+- **Threading**: audio power (double) é atomic em x64 — sem Dispatcher. UI updates DEVEM usar Dispatcher.Invoke
+- **Async/sync boundary**: NUNCA `.GetAwaiter().GetResult()` na UI thread (deadlock). Use `Task.Run(...).GetAwaiter().GetResult()`
+- **System prompt em inglês** com regra de detecção de idioma — Claude responde na língua do usuário
 
 ### TypeScript (Web)
-- **Next.js 16** — `middleware.ts` (renomear pra `proxy.ts` quando migrar pro novo convention)
-- **Supabase SSR** via `@supabase/ssr`: `createBrowserClient` no client, `createServerClient` no server, `createServiceClient` com service role key pra webhooks/admin
-- **Session em cookies** (não localStorage) — `middleware.ts` refresha cookies em cada request
-- **API routes**: POST only, auth via cookie session, erros retornam `{error: string}` + status code
-- **Webhook handler**: verifica HMAC-SHA256 OU query string secret, idempotente via `webhook_events` table
-- **AbacatePay SDK** (`abacatepay-nodejs-sdk`) pra billing — usa inline customer com placeholders, AbacatePay coleta CPF real no checkout deles
+- **Next.js 16** — `middleware.ts` pra refresh de sessão
+- **Supabase SSR** — `createBrowserClient`, `createServerClient`, `createServiceClient`
+- **i18n** — flat dictionary em `src/lib/i18n.ts`, ~120 chaves, PT-BR + EN
+- **Pagamento dual** — shared functions `activateSubscription()` / `deactivateSubscription()` em `src/lib/payments.ts`
+- **Checkout unificado** — rota única com `paymentMethod: 'pix' | 'card'`
 
-### Geral
-- **Sem commits de .env** — sempre gitignored, secrets em .env.example como template
-- **Supabase anon key** pode ser commitada (é pública por design) — já está hardcoded em AppSettings.cs
-- **Service role key** NUNCA no client — só em proxy server-side e web API routes
-- **Português brasileiro** em toda UI (tudo minúsculo, casual, sem formatação markdown no TTS)
+## Histórico de sessões
 
-## Feito nesta sessão (2026-04-16)
+### 2026-05-15 — Stripe, i18n, deploy produção, installer
 
-- [x] **OmniParser v2 integration**: substitui Claude Vision como detector de elementos UI. Serverless GPU recebe screenshot, retorna bounding boxes + labels + IDs. Claude passa a referenciar elementos por ID em vez de coordenadas pixel-precise.
-- [x] **`/locate` endpoint eliminado**: segunda chamada a Claude Vision não existe mais — match de ID feito localmente via `ParsePointTagV2` com fallback fuzzy por label.
-- [x] **Parse em paralelo com Whisper**: `Task.WhenAll(transcribeTask, parseTask)` — zero latência adicional. Timeout dedicado de 3s no OmniParser.
-- [x] **Element list no prompt**: `ElementListFormatter` formata lista textual (`#id "label" type [x1,y1,x2,y2]`) injetada no contexto. Trunca a 200 elementos priorizando proximidade ao cursor pra UIs densas.
-- [x] **System prompt dual**: instruções condicionais — usa `[POINT:id:label]` quando há lista, `[POINT:x,y:label]` quando não. Fallback graceful se OmniParser falhar.
-- [x] **15 testes novos**: `OmniParserClientTests` (4), `ElementListFormatterTests` (5), `PointingManagerV2Tests` (6). Total: 56 testes passando.
-- [x] **Settings OmniParser**: `OmniParserUrl` + `OmniParserApiKey` em AppSettings. Quando URL vazia, OmniParser desabilitado e app funciona como antes.
+- [x] **Stripe integration** — checkout card (USD), webhook (4 eventos), customer portal
+- [x] **Pagamento dual** — PIX (AbacatePay, BRL) + Card (Stripe, USD) na mesma página de upgrade
+- [x] **Migration 0005** — `stripe_customer_id`, `payment_provider` em profiles; `provider`, `currency` em payments
+- [x] **Shared payment functions** — `activateSubscription()` / `deactivateSubscription()` usadas por ambos webhooks
+- [x] **i18n completo** — ~120 chaves PT-BR + EN cobrindo landing, dashboard, upgrade
+- [x] **Locale toggle** — componente PT/EN na nav das 3 páginas, cookie-based, auto-detect por Accept-Language
+- [x] **Deploy web** — Vercel, domínio `ticoai.app`
+- [x] **Deploy worker** — Cloudflare Worker, custom domain `api.ticoai.app`, 6 secrets configurados
+- [x] **CORS atualizado** — `tico.app` → `ticoai.app`
+- [x] **Installer** — Inno Setup 6, `TicoSetup.exe` (~53MB), self-contained .NET 8 win-x64
+- [x] **R2 downloads** — bucket `tico-downloads`, custom domain `dl.ticoai.app`, TicoSetup.exe + version.json
+- [x] **Update checker** — app verifica `dl.ticoai.app/version.json` no startup, notifica via buddy + tray balloon
+- [x] **Multilingual** — system prompt em EN com regra de detecção de idioma, Whisper auto-detect (sem `language: "pt"` hardcoded)
+- [x] **ProxyBaseUrl e WebBaseUrl** — defaults atualizados para produção (`api.ticoai.app`, `ticoai.app`)
+- [x] **AbacatePay webhook** — configurado v2 em `ticoai.app/api/webhook/abacatepay`
 
-## Feito em sessões anteriores (2026-04-11)
+### 2026-04-16 — OmniParser v2
 
-- [x] **Buddy paralelo ao TTS**: buddy voa pro alvo ao mesmo tempo que o áudio toca (era sequencial)
-- [x] **Security hardening**: CORS restrito, rate limiting por IP, security headers, SSML/command injection fix
-- [x] **Olhos do Tico no login**: olhos seguem o cursor do usuário na página de login (mesma lógica da landing)
-- [x] **Senha mínima 8 chars**: fortalecida de 6 pra 8 no registro
-- [x] **Seção de segurança no README**: documentação completa de auth, CORS, rate limiting, injection prevention
-- [x] **ElevenLabs TTS**: migração de Azure/Edge TTS → ElevenLabs Flash v2.5 (vozes mais naturais, ~300ms latência)
+- [x] OmniParser v2 integration (substitui Claude Vision para detecção de elementos)
+- [x] `/locate` endpoint eliminado
+- [x] Parse em paralelo com Whisper
+- [x] Element list no prompt (ElementListFormatter, trunca a 200)
+- [x] System prompt dual (POINT por ID ou coordenadas)
+- [x] 15 testes novos (total: 56)
 
-## Feito em sessões anteriores (2026-04-10)
+### 2026-04-11 — Security + TTS
 
-- [x] **Pointer precision**: prompt engineering (mirar no centro, assertividade, UIs densas)
-- [x] **Crop da janela ativa**: segunda imagem em alta resolução pra identificar ícones pequenos
-- [x] **Window bounds no contexto**: Claude sabe exatamente onde a janela ativa está no screenshot
-- [x] **Coordinate clamping**: previne coordenadas fora dos limites do screenshot
-- [x] **Buddy offset separado**: PointOffset (0,0) no voo, cursor-follow inalterado
-- [x] **Glow underline removido**: buddy indica o elemento sem cobrir ele
-- [x] **JPEG quality 90**: mais detalhe em ícones e texto pequeno
-- [x] **Precision locate (/locate)**: segunda chamada de visão focada pra coordenadas pixel-precise
-- [x] **Streaming TTS**: áudio toca por frase enquanto Claude ainda streama, reduz latência ~3s
-- [x] **LoginWindow loading**: spinner animado + campos desabilitados durante auth
-- [x] **Cross-reference de conhecimento**: prompt instrui Claude a usar conhecimento do app pra validar ícones
+- [x] Buddy paralelo ao TTS
+- [x] Security hardening (CORS, rate limiting, headers)
+- [x] ElevenLabs TTS (Flash v2.5)
+- [x] Senha mínima 8 chars
 
-## Próximos passos — rumo à produção
+### 2026-04-10 — Pointer precision + Streaming
 
-### Deploy (bloqueiam lançamento)
-- [ ] Cloudflare Worker deploy com secrets configurados (ELEVENLABS_API_KEY, ELEVENLABS_VOICE_ID, etc.)
-- [ ] **Deploy do OmniParser v2** em serverless GPU (Replicate, RunPod ou Modal) — endpoint `/parse` com API key, ~300-500ms por inferência em T4/A10G
-- [ ] Configurar `OmniParserUrl` e `OmniParserApiKey` em `AppSettings` do app em produção
-- [ ] Deploy do web (Vercel ou similar)
-- [ ] Domínio tico.app configurado (DNS, HTTPS)
-- [ ] Installer/updater (MSIX ou Squirrel.Windows)
-- [ ] Landing page: botão "baixar" com link real pro installer
+- [x] Pointer precision (prompt engineering, crop da janela ativa, window bounds)
+- [x] Streaming TTS (áudio por frase)
+- [x] JPEG quality 90
+- [x] Precision locate, cross-reference de conhecimento
 
-### Funcionalidades pendentes
-- [ ] Subscription cancel UX (botão "Cancelar assinatura" no SettingsWindow + API route)
-- [ ] Adicionar ao Login do App.cs a caixinha de 'Lembrar' e salvar o login do usuário dentro do app.
-- [ ] Renovação automática (MULTIPLE_PAYMENTS na AbacatePay quando disponível na v1)
+## Funcionalidades pendentes
 
-### Polimento geral (próxima sessão)
-- [ ] Error handling mais granular no CompanionManager (network timeout vs auth expired vs usage limit — mensagens diferentes)
-- [ ] "Mostrar Tico" toggle precisa funcionar com transient mode corretamente
-- [ ] Settings: mostrar current_period_end formatado
-- [ ] Tratar `middleware.ts` deprecation → renomear pra `proxy.ts` (Next.js 16)
+- [ ] Deploy OmniParser v2 em serverless GPU (Replicate/RunPod/Modal)
+- [ ] Configurar `OmniParserUrl` + `OmniParserApiKey` em prod
+- [ ] Subscription cancel UX no SettingsWindow
+- [ ] "Lembrar login" checkbox no LoginWindow
+- [ ] Error handling granular no CompanionManager (network timeout vs auth expired vs usage limit)
 - [ ] Multi-monitor: testar com setup real de 2+ monitores
-- [ ] Return flight: testar cancelamento por cursor move >100px
-- [ ] Audio waveform: validar com microfones diferentes
-- [ ] Testar ElevenLabs TTS end-to-end (latência, qualidade, edge cases)
-
-### Marca e lançamento (2026-04-12)
-- [ ] Criar perfil LinkedIn da marca Tico
-- [ ] Criar perfil X (Twitter) da marca Tico
-- [ ] Estratégia de divulgação orgânica (conteúdo, demos, posts)
-- [ ] Separar logins de teste para beta testers de áreas específicas
-- [ ] Coletar feedback dos primeiros testers
+- [ ] `middleware.ts` → `proxy.ts` (Next.js 16 convention)
 
 ## Licença
 

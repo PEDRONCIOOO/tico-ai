@@ -245,6 +245,22 @@ public partial class App : Application
             }
             catch { /* ignore warmup failures */ }
         });
+
+        // Update check — runs in background, notifies user if new version available
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(3000);
+            var update = await UpdateChecker.CheckAsync(http);
+            if (update != null)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    _buddy?.ShowTransiently();
+                    _buddy?.ShowSpeechBubble($"nova versão {update.Version} disponível!");
+                    _tray?.ShowUpdateNotification(update.Version, update.Url);
+                });
+            }
+        });
     }
 
     /// <summary>

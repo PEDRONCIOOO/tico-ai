@@ -74,6 +74,9 @@ public partial class BuddyCursorWindow : Window
     private DispatcherTimer? _bubbleTimer;
     private DispatcherTimer? _bubbleHoldTimer;
 
+    // Update notification
+    private string? _updateUrl;
+
     // State
     private CompanionState _currentState = CompanionState.Idle;
     private DateTime _lastFrameTime;
@@ -439,6 +442,8 @@ public partial class BuddyCursorWindow : Window
         SpeechBubble.Visibility = Visibility.Collapsed;
         BubbleText.Text = "";
     }
+
+    public void SetUpdateUrl(string url) => _updateUrl = url;
 
     public event Action? BubbleHoldComplete;
 

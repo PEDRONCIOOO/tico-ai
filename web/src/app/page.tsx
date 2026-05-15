@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { t, type Locale } from '@/lib/i18n'
 import { LocaleToggle } from '@/components/LocaleToggle'
 
-const DOWNLOAD_URL = 'https://github.com/pfrfromperu/tico/releases/latest/download/TicoSetup.exe'
+const DOWNLOAD_URL = 'https://dl.ticoai.app/TicoSetup.exe'
 
 // ─── Tico Buddy Component (follows cursor) ───────────────────────
 function TicoBuddy() {

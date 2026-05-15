@@ -5,3 +5,7 @@ obj/
 .superpowers/
 .env
 .env.*
+node_modules/
+publish/
+output/
+.wrangler/
