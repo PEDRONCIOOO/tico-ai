@@ -100,6 +100,7 @@ const dict: Record<string, Record<Locale, string>> = {
   'hero.seePlans': { 'pt-br': 'ver planos →', en: 'see plans →' },
   'hero.note': { 'pt-br': 'windows 10+ · grátis · 10 usos por dia', en: 'windows 10+ · free · 10 uses per day' },
   'hero.bubble': { 'pt-br': 'oi! eu sou o tico 👋', en: 'hi! i\'m tico 👋' },
+  'hero.activeUsers': { 'pt-br': 'usuarios ativos', en: 'active users' },
 
   // Landing — features
   'features.title': { 'pt-br': 'pergunta qualquer coisa.', en: 'ask anything.' },

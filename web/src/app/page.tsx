@@ -182,6 +182,32 @@ function AuthNavButton({ locale }: { locale: Locale }) {
   )
 }
 
+// ─── Active Users Counter ────────────────────────────────────────
+function ActiveUsersCounter({ locale }: { locale: Locale }) {
+  const [count, setCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    fetch('/api/stats')
+      .then(r => r.json())
+      .then(d => { if (d.users) setCount(d.users) })
+      .catch(() => {})
+  }, [])
+
+  if (count === null) return null
+
+  return (
+    <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-gray-200/60 rounded-full px-4 py-2 shadow-sm animate-in delay-5">
+      <span className="relative flex h-2.5 w-2.5">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75" />
+        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#10B981]" />
+      </span>
+      <span className="text-[13px] text-[#4A4A4A] font-medium">
+        <span className="font-bold text-[#1A1A1A]">{count.toLocaleString()}+</span> {t('hero.activeUsers', locale)}
+      </span>
+    </div>
+  )
+}
+
 // ─── Main Page ───────────────────────────────────────────────────
 export default function Home() {
   const [authed, setAuthed] = useState(false)
@@ -276,8 +302,9 @@ export default function Home() {
                 {t('hero.note', locale)}
               </p>
             </div>
-            <div className="lg:col-span-2 flex justify-center lg:justify-end animate-in delay-3">
+            <div className="lg:col-span-2 flex flex-col items-center lg:items-end gap-5 animate-in delay-3">
               <HeroTico locale={locale} />
+              <ActiveUsersCounter locale={locale} />
             </div>
           </div>
         </div>
