@@ -23,6 +23,7 @@ public partial class App : Application
     private ProxyClient? _proxy;
     private ChatHistoryStore? _chatStore;
     private ChatHistoryButton? _chatButton;
+    private SettingsWindow? _settingsWindow;
     private ChatHistoryWindow? _chatWindow;
 
     protected override void OnStartup(StartupEventArgs e)
@@ -98,6 +99,14 @@ public partial class App : Application
                         _chatWindow.Show();
                 });
             };
+
+            _chatButton.PauseClicked += () =>
+            {
+                if (_chatButton.IsPaused)
+                    AudioHelper.PausePlayback();
+                else
+                    AudioHelper.ResumePlayback();
+            };
         }
 
         // State changes update tray icon and buddy visuals
@@ -169,6 +178,7 @@ public partial class App : Application
             {
                 _chatStore?.AddEntry(question, response);
                 _chatButton?.ShowWithFade();
+                _chatButton?.IncrementCount();
             });
         };
 
@@ -177,56 +187,75 @@ public partial class App : Application
         _hotkey.HotkeyDown += () =>
         {
             _buddy?.ShowTransiently();
+            _chatButton?.ResetPause();
             _manager.OnHotkeyDown();
         };
         _hotkey.HotkeyUp += () => _ = _manager.OnHotkeyUpAsync();
         _hotkey.Start(_settings.HotkeyCombo);
 
+        // Create persistent settings window (starts minimized in taskbar)
+        _settingsWindow = new SettingsWindow(_settings, _sessionManager.Current!, _proxy);
+        _settingsWindow.WindowState = WindowState.Minimized;
+        _settingsWindow.Show();
+
+        _settingsWindow.BuddyVisibilityChanged += visible =>
+        {
+            _buddy?.SetTransientMode(!visible);
+        };
+        _settingsWindow.HotkeyChanged += combo =>
+        {
+            _hotkey?.Dispose();
+            _hotkey = new HotkeyService();
+            _hotkey.HotkeyDown += () =>
+            {
+                _buddy?.ShowTransiently();
+                _manager!.OnHotkeyDown();
+            };
+            _hotkey.HotkeyUp += () => _ = _manager!.OnHotkeyUpAsync();
+            _hotkey.Start(combo);
+        };
+        _settingsWindow.ChatHistoryVisibilityChanged += enabled =>
+        {
+            if (enabled)
+            {
+                if (_chatButton == null)
+                {
+                    _chatButton = new ChatHistoryButton();
+                    _chatButton.Clicked += () => Dispatcher.Invoke(() =>
+                    {
+                        if (_chatWindow == null)
+                            _chatWindow = new ChatHistoryWindow(_chatStore!);
+                        if (_chatWindow.IsVisible) _chatWindow.Hide();
+                        else _chatWindow.Show();
+                    });
+                }
+                if (_chatStore!.Entries.Count > 0)
+                    _chatButton.ShowWithFade();
+            }
+            else
+            {
+                _chatButton?.HideWithFade();
+                _chatWindow?.Hide();
+            }
+        };
+        _settingsWindow.LogoutRequested += () =>
+        {
+            _sessionManager.Logout();
+            MessageBox.Show(
+                "Sessão encerrada. Abra o Tico novamente para entrar.",
+                "Tico", MessageBoxButton.OK, MessageBoxImage.Information);
+            Shutdown();
+        };
+
         // Tray events
         _tray.SettingsRequested += () =>
         {
-            var settingsWindow = new SettingsWindow(_settings, _sessionManager.Current!, _proxy);
-            settingsWindow.BuddyVisibilityChanged += visible =>
-            {
-                _buddy?.SetTransientMode(!visible);
-            };
-            settingsWindow.ChatHistoryVisibilityChanged += enabled =>
-            {
-                if (enabled)
-                {
-                    if (_chatButton == null)
-                    {
-                        _chatButton = new ChatHistoryButton();
-                        _chatButton.Clicked += () => Dispatcher.Invoke(() =>
-                        {
-                            if (_chatWindow == null)
-                                _chatWindow = new ChatHistoryWindow(_chatStore!);
-                            if (_chatWindow.IsVisible) _chatWindow.Hide();
-                            else _chatWindow.Show();
-                        });
-                    }
-                    if (_chatStore!.Entries.Count > 0)
-                        _chatButton.ShowWithFade();
-                }
-                else
-                {
-                    _chatButton?.HideWithFade();
-                    _chatWindow?.Hide();
-                }
-            };
-            settingsWindow.LogoutRequested += () =>
-            {
-                _sessionManager.Logout();
-                MessageBox.Show(
-                    "Sessão encerrada. Abra o Tico novamente para entrar.",
-                    "Tico", MessageBoxButton.OK, MessageBoxImage.Information);
-                Shutdown();
-            };
-            settingsWindow.Show();
+            _settingsWindow?.ShowFromTaskbar();
         };
 
         _tray.QuitRequested += () =>
         {
+            _settingsWindow?.ForceClose();
             _buddy?.HideBuddy();
             _hotkey.Dispose();
             _tray.Dispose();

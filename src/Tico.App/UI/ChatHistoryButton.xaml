@@ -8,18 +8,44 @@
         ShowInTaskbar="False"
         ShowActivated="False"
         ResizeMode="NoResize"
-        Width="40" Height="40">
-    <Border x:Name="ButtonBorder" CornerRadius="20"
-            Background="#CC171918" BorderBrush="#333333" BorderThickness="1"
-            Cursor="Hand" MouseLeftButtonDown="OnClick"
-            ToolTip="historico de chat">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.4" Color="Black"/>
-        </Border.Effect>
-        <Grid>
-            <TextBlock Text="&#x1F4AC;" FontSize="16"
+        Width="90" Height="40">
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+        <!-- Mute button -->
+        <Border x:Name="MuteBorder" CornerRadius="20" Width="36" Height="36"
+                Background="#CC171918" BorderBrush="#333333" BorderThickness="1"
+                Cursor="Hand" MouseLeftButtonDown="OnMuteClick"
+                Margin="0,0,6,0">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.4" Color="Black"/>
+            </Border.Effect>
+            <TextBlock x:Name="MuteIcon" Text="&#x1F50A;" FontSize="14"
                        HorizontalAlignment="Center" VerticalAlignment="Center"
                        Foreground="#A78BFA"/>
+        </Border>
+
+        <!-- Chat history button with counter badge -->
+        <Grid>
+            <Border x:Name="ButtonBorder" CornerRadius="20" Width="36" Height="36"
+                    Background="#CC171918" BorderBrush="#333333" BorderThickness="1"
+                    Cursor="Hand" MouseLeftButtonDown="OnClick"
+                    ToolTip="historico de chat">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.4" Color="Black"/>
+                </Border.Effect>
+                <TextBlock Text="&#x1F4AC;" FontSize="14"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="#A78BFA"/>
+            </Border>
+
+            <!-- Counter badge -->
+            <Border x:Name="CountBadge" Visibility="Collapsed"
+                    Background="#7C3AED" CornerRadius="8" MinWidth="16" Height="16"
+                    Padding="4,0" HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Margin="0,-3,-3,0">
+                <TextBlock x:Name="CountText" Text="0" Foreground="White"
+                           FontSize="9" FontWeight="Bold"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
         </Grid>
-    </Border>
+    </StackPanel>
 </Window>

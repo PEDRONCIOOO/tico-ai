@@ -91,6 +91,14 @@ public class CompanionManager
 
     private readonly IOmniParserClient? _omniParser;
 
+    private static readonly string LogPath = System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Tico", "debug.log");
+
+    private static void Log(string msg)
+    {
+        try { System.IO.File.AppendAllText(LogPath, $"[{DateTime.Now:HH:mm:ss}] {msg}\n"); } catch { }
+    }
+
     public CompanionManager(
         IAudioCaptureService audio,
         IScreenCaptureService screen,
@@ -153,6 +161,7 @@ public class CompanionManager
         if (State != CompanionState.Recording) return;
 
         var audioData = _audio.StopRecording();
+        Log($"Audio captured: {audioData?.Length ?? 0} bytes");
         _cts = new CancellationTokenSource();
         var ct = _cts.Token;
 
@@ -161,6 +170,7 @@ public class CompanionManager
         try
         {
             // Transcribe + OmniParser in parallel
+            Log($"Speech available: {_speech?.IsAvailable}, ProxyBaseUrl: {_settings.ProxyBaseUrl}");
             Task<string> transcribeTask;
             if (_speech is { IsAvailable: true })
             {
@@ -195,11 +205,12 @@ public class CompanionManager
 
             if (string.IsNullOrWhiteSpace(transcript))
             {
+                Log("Empty transcript — going idle");
                 SetState(CompanionState.Idle);
                 return;
             }
 
-            System.Diagnostics.Debug.WriteLine($"Transcript: {transcript}");
+            Log($"Transcript: {transcript}");
 
             // Build labeled images and context text for Claude
             List<LabeledImage>? images = null;
@@ -358,7 +369,7 @@ public class CompanionManager
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Pipeline error: {ex.Message}");
+            Log($"Pipeline error: {ex}");
             SetState(CompanionState.Idle);
         }
     }
@@ -393,21 +404,24 @@ public class CompanionManager
         SetState(CompanionState.Idle);
     }
 
-    private static async Task PlayAudioChunksAsync(List<Task<byte[]>> ttsTasks, CancellationToken ct)
+    private async Task PlayAudioChunksAsync(List<Task<byte[]>> ttsTasks, CancellationToken ct)
     {
+        Log($"TTS: {ttsTasks.Count} chunks to play");
         foreach (var ttsTask in ttsTasks)
         {
             try
             {
                 var audioBytes = await ttsTask;
+                Log($"TTS chunk: {audioBytes.Length} bytes");
                 if (audioBytes.Length > 0)
                     await Helpers.AudioHelper.PlayMp3Async(audioBytes, ct);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"TTS chunk failed: {ex.Message}");
+                Log($"TTS chunk failed: {ex}");
             }
         }
+        Log("TTS playback done");
     }
 
     /// <summary>

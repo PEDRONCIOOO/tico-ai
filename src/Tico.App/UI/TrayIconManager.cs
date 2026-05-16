@@ -27,10 +27,10 @@ public class TrayIconManager : IDisposable
     {
         var (color, tooltip) = state switch
         {
-            CompanionState.Idle => (Color.FromArgb(124, 58, 237), "Tico — Pronto"),
-            CompanionState.Recording => (Color.FromArgb(239, 68, 68), "Tico — Gravando..."),
-            CompanionState.Processing => (Color.FromArgb(245, 158, 11), "Tico — Pensando..."),
-            CompanionState.Speaking => (Color.FromArgb(16, 185, 129), "Tico — Falando..."),
+            CompanionState.Idle => (Color.FromArgb(124, 58, 237), Config.Strings.TrayReady),
+            CompanionState.Recording => (Color.FromArgb(239, 68, 68), Config.Strings.TrayRecording),
+            CompanionState.Processing => (Color.FromArgb(245, 158, 11), Config.Strings.TrayProcessing),
+            CompanionState.Speaking => (Color.FromArgb(16, 185, 129), Config.Strings.TraySpeaking),
             _ => (Color.FromArgb(124, 58, 237), "Tico")
         };
         _trayIcon.Icon = CreateColoredIcon(color);
@@ -40,11 +40,11 @@ public class TrayIconManager : IDisposable
     private System.Windows.Controls.ContextMenu CreateContextMenu()
     {
         var menu = new System.Windows.Controls.ContextMenu();
-        var settingsItem = new System.Windows.Controls.MenuItem { Header = "Configurações" };
+        var settingsItem = new System.Windows.Controls.MenuItem { Header = Config.Strings.TraySettings };
         settingsItem.Click += (_, _) => SettingsRequested?.Invoke();
         menu.Items.Add(settingsItem);
         menu.Items.Add(new System.Windows.Controls.Separator());
-        var quitItem = new System.Windows.Controls.MenuItem { Header = "Sair" };
+        var quitItem = new System.Windows.Controls.MenuItem { Header = Config.Strings.TrayQuit };
         quitItem.Click += (_, _) => QuitRequested?.Invoke();
         menu.Items.Add(quitItem);
         return menu;
@@ -52,13 +52,20 @@ public class TrayIconManager : IDisposable
 
     private static Icon CreateColoredIcon(Color color)
     {
-        var bmp = new Bitmap(16, 16);
+        const int size = 64;
+        var bmp = new Bitmap(size, size);
         using var g = Graphics.FromImage(bmp);
+        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+
         using var brush = new SolidBrush(color);
-        g.FillRectangle(brush, 0, 0, 16, 16);
-        using var font = new Font("Segoe UI", 9, System.Drawing.FontStyle.Bold);
-        using var textBrush = new SolidBrush(Color.White);
-        g.DrawString("T", font, textBrush, 1, 0);
+        g.FillEllipse(brush, 2, 2, size - 4, size - 4);
+
+        using var white = new SolidBrush(Color.White);
+        int eyeSize = size / 7;
+        int eyeY = (int)(size * 0.40);
+        g.FillEllipse(white, (int)(size * 0.30), eyeY, eyeSize, eyeSize);
+        g.FillEllipse(white, (int)(size * 0.55), eyeY, eyeSize, eyeSize);
+
         return Icon.FromHandle(bmp.GetHicon());
     }
 

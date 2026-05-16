@@ -22,12 +22,11 @@ const FormData = require("form-data");
 const PORT = 3000;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID;
+// ElevenLabs keys no longer needed — TTS migrated to OpenAI
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const required = { ANTHROPIC_API_KEY, OPENAI_API_KEY, ELEVENLABS_API_KEY, ELEVENLABS_VOICE_ID, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY };
+const required = { ANTHROPIC_API_KEY, OPENAI_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY };
 const missing = Object.entries(required).filter(([, v]) => !v).map(([k]) => k);
 if (missing.length) {
   console.error("❌ Missing required environment variables:");
@@ -331,14 +330,14 @@ async function handleTranscribe(req, res, userId) {
   }
 }
 
-// ─── /tts → ElevenLabs TTS (auth required, not metered) ─────────────
+// ─── /tts → OpenAI TTS (auth required, not metered) ─────────────────
 
 async function handleTts(req, res, userId) {
   const body = await readBody(req);
   const parsed = JSON.parse(body);
   const text = (parsed.text || "").slice(0, TTS_TEXT_MAX_LENGTH);
 
-  console.log(`🔊 /tts → ElevenLabs (user=${userId.slice(0, 8)})`);
+  console.log(`🔊 /tts → OpenAI TTS (user=${userId.slice(0, 8)})`);
   console.log("   Text:", text.substring(0, 80) + (text.length > 80 ? "..." : ""));
 
   if (!text.trim()) {
@@ -348,29 +347,23 @@ async function handleTts(req, res, userId) {
   }
 
   try {
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}?output_format=mp3_44100_128`,
-      {
-        method: "POST",
-        headers: {
-          "xi-api-key": ELEVENLABS_API_KEY,
-          "Content-Type": "application/json",
-          "Accept": "audio/mpeg",
-        },
-        body: JSON.stringify({
-          text,
-          model_id: "eleven_flash_v2_5",
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-          },
-        }),
-      }
-    );
+    const response = await fetch("https://api.openai.com/v1/audio/speech", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "tts-1",
+        input: text,
+        voice: "nova",
+        response_format: "mp3",
+      }),
+    });
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error(`   ❌ ElevenLabs error ${response.status}: ${errText}`);
+      console.error(`   ❌ OpenAI TTS error ${response.status}: ${errText}`);
       res.writeHead(200, { "Content-Type": "audio/mpeg" });
       res.end(Buffer.alloc(0));
       return;

@@ -11,6 +11,7 @@ public partial class OverlayWindow : Window
     private const int GWL_EXSTYLE = -20;
     private const int WS_EX_TRANSPARENT = 0x00000020;
     private const int WS_EX_TOOLWINDOW = 0x00000080;
+    private const int WS_EX_NOACTIVATE = 0x08000000;
 
     [DllImport("user32.dll")]
     private static extern int GetWindowLong(IntPtr hwnd, int index);
@@ -22,9 +23,11 @@ public partial class OverlayWindow : Window
     {
         InitializeComponent();
 
+        // Use full bounds minus 1px to prevent Windows from treating this as
+        // a fullscreen app (which auto-hides the taskbar).
         var screen = System.Windows.Forms.Screen.PrimaryScreen!;
-        Width = screen.Bounds.Width;
-        Height = screen.Bounds.Height;
+        Width = screen.Bounds.Width - 1;
+        Height = screen.Bounds.Height - 1;
         Left = screen.Bounds.Left;
         Top = screen.Bounds.Top;
 
@@ -35,7 +38,7 @@ public partial class OverlayWindow : Window
     {
         var hwnd = new WindowInteropHelper(this).Handle;
         int exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
-        SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW);
+        SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
     }
 
     public void ShowGlowAt(int screenX, int screenY)

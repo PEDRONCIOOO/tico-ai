@@ -87,7 +87,11 @@ public class ProxyClient : IProxyClient
         }
 
         var response = await SendWithAuthAsync(MakeRequest, HttpCompletionOption.ResponseContentRead, ct);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errBody = await response.Content.ReadAsStringAsync(ct);
+            throw new HttpRequestException($"Transcribe {(int)response.StatusCode}: {errBody}");
+        }
 
         var json = await response.Content.ReadAsStringAsync(ct);
         using var doc = JsonDocument.Parse(json);
@@ -103,7 +107,11 @@ public class ProxyClient : IProxyClient
         };
 
         var response = await SendWithAuthAsync(MakeRequest, HttpCompletionOption.ResponseContentRead, ct);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errBody = await response.Content.ReadAsStringAsync(ct);
+            throw new HttpRequestException($"TTS {(int)response.StatusCode}: {errBody}");
+        }
 
         return await response.Content.ReadAsByteArrayAsync(ct);
     }

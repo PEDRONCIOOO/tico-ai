@@ -10,6 +10,7 @@ OutputBaseFilename=TicoSetup
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=lowest
+SetupIconFile=src\Tico.App\tico.ico
 UninstallDisplayIcon={app}\Tico.App.exe
 WizardStyle=modern
 DisableProgramGroupPage=yes

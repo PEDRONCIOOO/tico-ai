@@ -253,25 +253,66 @@ async function handleChat(request, env, userId, cors) {
 // ─── /transcribe → OpenAI Whisper (auth required, not metered) ──────
 
 async function handleTranscribe(request, env, _userId, cors) {
-  const formData = await request.formData();
-  const audioFile = formData.get("file");
+  // .NET MultipartFormDataContent is incompatible with Cloudflare Workers' formData() parser.
+  // Rebuild the multipart body from the raw bytes, appending the "model" field.
+  const rawBody = await request.arrayBuffer();
+  const contentType = request.headers.get("Content-Type") || "";
+  const boundaryMatch = contentType.match(/boundary=("?)(.+?)\1(?:;|$)/);
 
-  if (!audioFile) {
-    return jsonError("Missing 'file' in form data", 400, cors);
+  if (!boundaryMatch) {
+    return jsonError("Missing multipart boundary", 400, cors);
+  }
+  const boundary = boundaryMatch[2];
+
+  // Build a fresh multipart body with the audio and model field
+  const freshBoundary = "----WhisperBoundary" + Date.now();
+  const audioBytes = new Uint8Array(rawBody);
+
+  // Extract the raw file bytes from between the first pair of boundaries
+  const fileBytes = extractFileBytes(audioBytes, boundary);
+  if (!fileBytes) {
+    return jsonError("Could not extract audio from multipart body", 400, cors);
   }
 
-  const whisperForm = new FormData();
-  whisperForm.append("file", audioFile, "audio.wav");
-  whisperForm.append("model", "whisper-1");
+  // Assemble a clean multipart body that OpenAI will accept
+  const enc = new TextEncoder();
+  const filePart = [
+    `--${freshBoundary}\r\n`,
+    `Content-Disposition: form-data; name="file"; filename="audio.wav"\r\n`,
+    `Content-Type: audio/wav\r\n\r\n`,
+  ].join("");
+  const modelPart = [
+    `\r\n--${freshBoundary}\r\n`,
+    `Content-Disposition: form-data; name="model"\r\n\r\n`,
+    `whisper-1`,
+    `\r\n--${freshBoundary}--\r\n`,
+  ].join("");
 
-  const whisperResponse = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}` },
-    body: whisperForm,
-  });
+  const filePartBytes = enc.encode(filePart);
+  const modelPartBytes = enc.encode(modelPart);
+  const body = new Uint8Array(filePartBytes.length + fileBytes.length + modelPartBytes.length);
+  body.set(filePartBytes, 0);
+  body.set(fileBytes, filePartBytes.length);
+  body.set(modelPartBytes, filePartBytes.length + fileBytes.length);
+
+  let whisperResponse;
+  try {
+    whisperResponse = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+        "Content-Type": `multipart/form-data; boundary=${freshBoundary}`,
+      },
+      body: body.buffer,
+    });
+  } catch (err) {
+    console.error("Whisper fetch error:", err.message);
+    return jsonError(`Whisper request failed: ${err.message}`, 502, cors);
+  }
 
   if (!whisperResponse.ok) {
     const errText = await whisperResponse.text();
+    console.error(`Whisper API error ${whisperResponse.status}: ${errText}`);
     return new Response(errText, {
       status: whisperResponse.status,
       headers: { ...cors, "Content-Type": "application/json" },
@@ -284,12 +325,11 @@ async function handleTranscribe(request, env, _userId, cors) {
   });
 }
 
-// ─── /tts → ElevenLabs TTS (auth required, not metered) ─────────────
+// ─── /tts → OpenAI TTS (auth required, not metered) ─────────────────
 
 async function handleTts(request, env, _userId, cors) {
   const body = await request.json();
   const text = (body.text || "").slice(0, TTS_TEXT_MAX_LENGTH);
-  const voiceId = env.ELEVENLABS_VOICE_ID;
 
   if (!text.trim()) {
     return new Response(new ArrayBuffer(0), {
@@ -298,29 +338,23 @@ async function handleTts(request, env, _userId, cors) {
     });
   }
 
-  const ttsResponse = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
-    {
-      method: "POST",
-      headers: {
-        "xi-api-key": env.ELEVENLABS_API_KEY,
-        "Content-Type": "application/json",
-        "Accept": "audio/mpeg",
-      },
-      body: JSON.stringify({
-        text,
-        model_id: "eleven_flash_v2_5",
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-        },
-      }),
-    }
-  );
+  const ttsResponse = await fetch("https://api.openai.com/v1/audio/speech", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "tts-1",
+      input: text,
+      voice: "nova",
+      response_format: "mp3",
+    }),
+  });
 
   if (!ttsResponse.ok) {
     const errText = await ttsResponse.text();
-    console.error(`ElevenLabs TTS error ${ttsResponse.status}: ${errText}`);
+    console.error(`OpenAI TTS error ${ttsResponse.status}: ${errText}`);
     return new Response(errText, {
       status: ttsResponse.status,
       headers: { ...cors, "Content-Type": "application/json" },
@@ -362,4 +396,46 @@ function jsonError(message, status, cors) {
     status,
     headers: { ...cors, "Content-Type": "application/json" },
   });
+}
+
+// ─── Multipart parser (extracts raw file bytes from first part) ─────
+
+function extractFileBytes(data, boundary) {
+  const enc = new TextEncoder();
+  const delim = enc.encode("--" + boundary);
+
+  // Find first boundary
+  let pos = indexOf(data, delim, 0);
+  if (pos < 0) return null;
+  pos += delim.length;
+
+  // Skip \r\n after boundary
+  while (pos < data.length && (data[pos] === 0x0d || data[pos] === 0x0a)) pos++;
+
+  // Find blank line separating headers from body (\r\n\r\n)
+  const sep = enc.encode("\r\n\r\n");
+  const headerEnd = indexOf(data, sep, pos);
+  if (headerEnd < 0) return null;
+
+  const bodyStart = headerEnd + 4;
+
+  // Find next boundary
+  const bodyEnd = indexOf(data, delim, bodyStart);
+  if (bodyEnd < 0) return null;
+
+  // Strip trailing \r\n before boundary
+  let end = bodyEnd;
+  if (end >= 2 && data[end - 2] === 0x0d && data[end - 1] === 0x0a) end -= 2;
+
+  return data.slice(bodyStart, end);
+}
+
+function indexOf(haystack, needle, from) {
+  outer: for (let i = from; i <= haystack.length - needle.length; i++) {
+    for (let j = 0; j < needle.length; j++) {
+      if (haystack[i + j] !== needle[j]) continue outer;
+    }
+    return i;
+  }
+  return -1;
 }
