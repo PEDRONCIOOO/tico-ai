@@ -40,7 +40,7 @@ const ALLOWED_MODELS = new Set([
   "claude-haiku-4-5-20251001",
 ]);
 const MAX_TOKENS_MIN = 256;
-const MAX_TOKENS_MAX = 4096;
+const MAX_TOKENS_MAX = 8192;
 const TTS_TEXT_MAX_LENGTH = 5000;
 
 // ─── Entry point ─────────────────────────────────────────────────────
@@ -216,6 +216,7 @@ async function handleChat(request, env, userId, cors) {
       "Content-Type": "application/json",
       "x-api-key": env.ANTHROPIC_API_KEY,
       "anthropic-version": "2023-06-01",
+      "anthropic-beta": "web-search-2025-03-05",
     },
     body: JSON.stringify({
       model,
@@ -223,6 +224,13 @@ async function handleChat(request, env, userId, cors) {
       system: body.system || "",
       messages: body.messages || [],
       stream: true,
+      tools: [
+        {
+          type: "web_search_20250305",
+          name: "web_search",
+          max_uses: 3,
+        },
+      ],
     }),
   });
 

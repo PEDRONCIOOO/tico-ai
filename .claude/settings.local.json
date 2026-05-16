@@ -4,7 +4,8 @@
       "WebFetch(domain:docs.abacatepay.com)",
       "Bash(dotnet build:*)",
       "Bash(ls -la \"C:\\\\Users\\\\pedro\\\\TicoAI\\\\src\\\\Tico.App\"\" | grep -E \"^- \")",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "mcp__plugin_context7_context7__resolve-library-id"
     ]
   }
 }
