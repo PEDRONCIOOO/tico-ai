@@ -16,6 +16,7 @@ export default function RegisterPage() {
 function RegisterContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [name, setName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -30,6 +31,12 @@ function RegisterContent() {
 
     if (password.length < 8) {
       setError('a senha precisa ter pelo menos 8 caracteres')
+      setLoading(false)
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError('as senhas nao coincidem')
       setLoading(false)
       return
     }
@@ -103,6 +110,17 @@ function RegisterContent() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="minimo 8 caracteres"
+                required
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED]/20 transition bg-[#FAFAF8]"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-[#8A8A8A] uppercase tracking-wider block mb-1.5">confirmar senha</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                placeholder="repita a senha"
                 required
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED]/20 transition bg-[#FAFAF8]"
               />
