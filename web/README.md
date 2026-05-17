@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tico Web — ticoai.app
+
+Next.js 16 app deployed on Vercel. Landing page, auth, dashboard, blog, and payment APIs.
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Push to `master` — Vercel auto-deploys.
 
-## Learn More
+## Security Hardening (2026-05-17)
 
-To learn more about Next.js, take a look at the following resources:
+Based on a full pentest report by Paulo "Extencil" Cortez. Report at `PENTEST/RELATÓRIO-SEGURANÇA.md`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Web (this project)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Rate Limiting** — all API endpoints are rate-limited:
 
-## Deploy on Vercel
+| Endpoint | Limit | Key |
+|----------|-------|-----|
+| `GET /api/stats` | 30/min | IP |
+| `GET /api/posts` | 60/min | IP |
+| `POST /api/posts` | 20/min | User |
+| `POST /api/feedback` | 2/hour | User |
+| `POST /api/checkout/create-subscription` | 5/min | User |
+| `POST /api/checkout/customer-portal` | 5/min | User |
+| Webhooks (Stripe/AbacatePay) | No limit | Signature verified |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Supabase RLS Hardening** (`supabase/migrations/0007_rls_hardening.sql`):
+- Trigger `protect_profile_fields` blocks authenticated users from modifying `tier`, `subscription_id`, `subscription_status`, `pending_plan`, `current_period_end`, `payment_provider`, `stripe_customer_id`, `abacatepay_customer_id`, `email`. Only `service_role` can change these.
+- RPCs `check_usage()` and `increment_usage()` validate `auth.uid() = p_user_id` (service_role bypasses for backend proxy).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**SEO / Meta Tags**:
+- Google Analytics (gtag.js `G-11HMTJDK5N`)
+- `sitemap.xml`, `robots.txt` (auto-generated)
+- JSON-LD `SoftwareApplication` structured data
+- Favicon + Apple Touch Icon
+- PWA `manifest.webmanifest`
+- `metadataBase` for canonical URLs
+
+### Desktop App (v1.1.0)
+
+| Fix | File | What changed |
+|-----|------|-------------|
+| URL allowlist on update flow | `UpdateChecker.cs` | Only allows `dl.ticoai.app`, `ticoai.app`, `github.com` over HTTPS |
+| Immutable critical endpoints | `AppSettings.cs` | `ProxyBaseUrl`, `SupabaseUrl`, `SupabaseAnonKey`, `WebBaseUrl` are `[JsonIgnore]` constants — can't be overridden from `settings.json` |
+| Strip old screenshots from history | `ConversationHistory.cs` | `MessagesForApi` sends images only for the latest user message |
+| Server-side logout | `AuthService.cs`, `SessionManager.cs` | Calls Supabase `POST /auth/v1/logout` before clearing local session |
+| No sensitive data in logs | `CompanionManager.cs` | `Log()` is `[Conditional("DEBUG")]` — no-op in Release. Transcript text and API URLs removed from log messages |
+| RegisterHotKey instead of global hook | `HotkeyService.cs` | Replaced `WH_KEYBOARD_LL` with `RegisterHotKey` + `GetAsyncKeyState` polling for key-up |
+| Audio max duration | `AudioCaptureService.cs` | 60-second safety limit with auto-stop timer |
+| Focused screen only | `ScreenCaptureService.cs` | Captures only the monitor where the cursor is, not all monitors |
+
+### Pending
+
+- **Authenticode code signing** — needs certificate purchase + CI integration

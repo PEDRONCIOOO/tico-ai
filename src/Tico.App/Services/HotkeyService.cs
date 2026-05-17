@@ -1,111 +1,94 @@
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
+using System.Windows.Interop;
 
 namespace Tico.App.Services;
 
 public class HotkeyService : IHotkeyService
 {
-    private IntPtr _hookId = IntPtr.Zero;
-    private LowLevelKeyboardProc? _hookProc;
-    private Key _targetKey = Key.Space;
-    private ModifierKeys _targetModifiers = ModifierKeys.Control | ModifierKeys.Shift;
-    private bool _isPressed;
+    private HwndSource? _hwndSource;
+    private int _targetVk;
+    private uint _modFlags;
+    private volatile bool _isPressed;
 
     public event Action? HotkeyDown;
     public event Action? HotkeyUp;
 
-    private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
 
     [DllImport("user32.dll", SetLastError = true)]
-    private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
-
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern bool UnhookWindowsHookEx(IntPtr hhk);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
-
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-    private static extern IntPtr GetModuleHandle(string lpModuleName);
+    private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
     [DllImport("user32.dll")]
     private static extern short GetAsyncKeyState(int vKey);
 
-    private const int WH_KEYBOARD_LL = 13;
-    private const int WM_KEYDOWN = 0x0100;
-    private const int WM_KEYUP = 0x0101;
-    private const int WM_SYSKEYDOWN = 0x0104;
-    private const int WM_SYSKEYUP = 0x0105;
+    private const int HOTKEY_ID = 1;
+    private const int WM_HOTKEY = 0x0312;
+    private const uint MOD_ALT = 0x0001;
+    private const uint MOD_CONTROL = 0x0002;
+    private const uint MOD_SHIFT = 0x0004;
+    private const uint MOD_NOREPEAT = 0x4000;
 
     public void Start(string hotkeyCombo)
     {
         ParseHotkeyCombo(hotkeyCombo);
-        _hookProc = HookCallback;
-        using var process = Process.GetCurrentProcess();
-        using var module = process.MainModule!;
-        _hookId = SetWindowsHookEx(WH_KEYBOARD_LL, _hookProc, GetModuleHandle(module.ModuleName!), 0);
+
+        var parameters = new HwndSourceParameters("TicoHotkey") { Width = 0, Height = 0, WindowStyle = 0 };
+        _hwndSource = new HwndSource(parameters);
+        _hwndSource.AddHook(WndProc);
+
+        RegisterHotKey(_hwndSource.Handle, HOTKEY_ID, _modFlags | MOD_NOREPEAT, (uint)_targetVk);
     }
 
     public void Stop()
     {
-        if (_hookId != IntPtr.Zero)
+        if (_hwndSource != null)
         {
-            UnhookWindowsHookEx(_hookId);
-            _hookId = IntPtr.Zero;
+            UnregisterHotKey(_hwndSource.Handle, HOTKEY_ID);
+            _hwndSource.RemoveHook(WndProc);
+            _hwndSource.Dispose();
+            _hwndSource = null;
         }
     }
 
-    private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-        if (nCode >= 0)
+        if (msg == WM_HOTKEY && wParam.ToInt32() == HOTKEY_ID && !_isPressed)
         {
-            int vkCode = Marshal.ReadInt32(lParam);
-            var key = KeyInterop.KeyFromVirtualKey(vkCode);
-            bool isDown = wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN;
-            bool isUp = wParam == WM_KEYUP || wParam == WM_SYSKEYUP;
+            _isPressed = true;
+            HotkeyDown?.Invoke();
+            handled = true;
 
-            if (key == _targetKey)
-            {
-                if (isDown && !_isPressed && AreModifiersHeld())
-                {
-                    _isPressed = true;
-                    System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => HotkeyDown?.Invoke());
-                }
-                else if (isUp && _isPressed)
-                {
-                    _isPressed = false;
-                    System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => HotkeyUp?.Invoke());
-                }
-            }
+            var vk = _targetVk;
+            Task.Run(() => PollKeyRelease(vk));
         }
-        return CallNextHookEx(_hookId, nCode, wParam, lParam);
+        return IntPtr.Zero;
     }
 
-    private bool AreModifiersHeld()
+    private void PollKeyRelease(int vk)
     {
-        if (_targetModifiers.HasFlag(ModifierKeys.Control) && !IsKeyDown(0x11)) return false;
-        if (_targetModifiers.HasFlag(ModifierKeys.Shift) && !IsKeyDown(0x10)) return false;
-        if (_targetModifiers.HasFlag(ModifierKeys.Alt) && !IsKeyDown(0x12)) return false;
-        return true;
-    }
+        while ((GetAsyncKeyState(vk) & 0x8000) != 0)
+            Thread.Sleep(15);
 
-    private static bool IsKeyDown(int vKey) => (GetAsyncKeyState(vKey) & 0x8000) != 0;
+        _isPressed = false;
+        System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => HotkeyUp?.Invoke());
+    }
 
     private void ParseHotkeyCombo(string combo)
     {
-        _targetModifiers = ModifierKeys.None;
+        _modFlags = 0;
         var parts = combo.Split('+').Select(p => p.Trim()).ToList();
         foreach (var part in parts)
         {
             switch (part.ToLower())
             {
-                case "ctrl": _targetModifiers |= ModifierKeys.Control; break;
-                case "shift": _targetModifiers |= ModifierKeys.Shift; break;
-                case "alt": _targetModifiers |= ModifierKeys.Alt; break;
+                case "ctrl": _modFlags |= MOD_CONTROL; break;
+                case "shift": _modFlags |= MOD_SHIFT; break;
+                case "alt": _modFlags |= MOD_ALT; break;
                 default:
                     if (Enum.TryParse<Key>(part, true, out var key))
-                        _targetKey = key;
+                        _targetVk = KeyInterop.VirtualKeyFromKey(key);
                     break;
             }
         }

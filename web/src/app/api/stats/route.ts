@@ -1,9 +1,14 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase-server'
+import { rateLimit } from '@/lib/rate-limit'
 
 const BASE_USERS = 50
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  if (!rateLimit(`stats:${ip}`, 30, 60_000))
+    return NextResponse.json({ error: 'rate limited' }, { status: 429 })
+
   try {
     const service = createServiceClient()
     const { count } = await service

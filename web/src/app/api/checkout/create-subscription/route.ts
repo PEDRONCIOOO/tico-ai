@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient, createServiceClient } from '@/lib/supabase-server'
+import { rateLimit } from '@/lib/rate-limit'
 import AbacatePay from 'abacatepay-nodejs-sdk'
 import { stripe } from '@/lib/stripe'
 
@@ -32,6 +33,9 @@ export async function POST(req: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
+
+  if (!rateLimit(`checkout:${user.id}`, 5, 60_000))
+    return NextResponse.json({ error: 'rate limited' }, { status: 429 })
 
   const body = await req.json().catch(() => ({}))
   const plan = body.plan as PlanId | undefined

@@ -16,7 +16,7 @@ public static class Strings
     public static string RemainingToday => IsPt ? "restantes • hoje" : "remaining • today";
     public static string RemainingMonth => IsPt ? "restantes • este mês" : "remaining • this month";
     public static string Logout => IsPt ? "sair da conta" : "log out";
-    public static string HotkeyTip => IsPt ? "pressione {0} para falar com o tico" : "press {0} to talk to tico";
+    public static string HotkeyTip => IsPt ? "pressione e segure {0} para falar com o tico" : "press and hold {0} to talk to tico";
     public static string Model => IsPt ? "Modelo" : "Model";
     public static string Voice => IsPt ? "Voz" : "Voice";
     public static string ShowTico => IsPt ? "Mostrar Tico" : "Show Tico";

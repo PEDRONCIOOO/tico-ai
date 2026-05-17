@@ -22,6 +22,33 @@ public class ConversationHistory
 
     public IReadOnlyList<ChatMessage> Messages => _messages;
 
+    /// <summary>
+    /// Returns messages with images stripped from all user messages except the last one,
+    /// so old screenshots are not resent to the API.
+    /// </summary>
+    public IReadOnlyList<ChatMessage> MessagesForApi
+    {
+        get
+        {
+            var lastUserIdx = -1;
+            for (var i = _messages.Count - 1; i >= 0; i--)
+            {
+                if (_messages[i].Role == "user") { lastUserIdx = i; break; }
+            }
+
+            var result = new List<ChatMessage>(_messages.Count);
+            for (var i = 0; i < _messages.Count; i++)
+            {
+                var msg = _messages[i];
+                if (msg.Role == "user" && i != lastUserIdx && msg.Images is not null)
+                    result.Add(new ChatMessage { Role = msg.Role, TextContent = msg.TextContent });
+                else
+                    result.Add(msg);
+            }
+            return result;
+        }
+    }
+
     public ConversationHistory(int maxMessages = 10)
     {
         _maxMessages = maxMessages;

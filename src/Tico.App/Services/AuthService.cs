@@ -55,6 +55,16 @@ public class AuthService : IAuthService
         return ParseSession(responseText);
     }
 
+    public async Task LogoutAsync(string accessToken, CancellationToken ct = default)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post,
+            $"{_settings.SupabaseUrl}/auth/v1/logout");
+        request.Headers.Add("apikey", _settings.SupabaseAnonKey);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        try { await _http.SendAsync(request, ct); } catch { }
+    }
+
     // ─── Static helpers (pure logic, easily testable) ────────────────
 
     /// <summary>

@@ -33,8 +33,11 @@ public class SessionManager : ISessionProvider
         _store.Save(session);
     }
 
-    public void Logout()
+    public async Task LogoutAsync()
     {
+        if (_session != null)
+            await _auth.LogoutAsync(_session.AccessToken);
+
         _session = null;
         _store.Clear();
     }

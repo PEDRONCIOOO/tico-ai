@@ -96,6 +96,7 @@ public class CompanionManager
     private static readonly string LogPath = System.IO.Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Tico", "debug.log");
 
+    [System.Diagnostics.Conditional("DEBUG")]
     private static void Log(string msg)
     {
         try { System.IO.File.AppendAllText(LogPath, $"[{DateTime.Now:HH:mm:ss}] {msg}\n"); } catch { }
@@ -172,7 +173,7 @@ public class CompanionManager
         try
         {
             // Transcribe + OmniParser in parallel
-            Log($"Speech available: {_speech?.IsAvailable}, ProxyBaseUrl: {_settings.ProxyBaseUrl}");
+            Log($"Speech available: {_speech?.IsAvailable}");
             Task<string> transcribeTask;
             if (_speech is { IsAvailable: true })
             {
@@ -212,7 +213,7 @@ public class CompanionManager
                 return;
             }
 
-            Log($"Transcript: {transcript}");
+            Log($"Transcript: {transcript.Length} chars");
 
             // Build labeled images and context text for Claude
             List<LabeledImage>? images = null;
@@ -266,7 +267,7 @@ public class CompanionManager
             var ttsTasks = new List<Task<byte[]>>();
 
             await foreach (var token in _proxy.StreamChatAsync(
-                SystemPrompt, History.Messages, _settings.ClaudeModel, ct))
+                SystemPrompt, History.MessagesForApi, _settings.ClaudeModel, ct))
             {
                 fullResponse.Append(token);
                 sentenceBuffer.Append(token);

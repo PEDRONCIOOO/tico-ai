@@ -13,31 +13,29 @@ public class ScreenCaptureService : IScreenCaptureService
         var allScreens = WinFormsScreen.AllScreens;
         var focusScreen = WinFormsScreen.FromPoint(new System.Drawing.Point(cursorX, cursorY));
 
-        var captured = new List<CapturedScreen>(allScreens.Length);
+        int focusIndex = Array.IndexOf(allScreens, focusScreen);
+        if (focusIndex < 0) focusIndex = 0;
 
-        for (int i = 0; i < allScreens.Length; i++)
+        var (bitmap, ssW, ssH, physW, physH) =
+            ImageHelper.CaptureSpecificScreen(focusScreen, drawCursor: true, cursorX, cursorY);
+        var base64 = ImageHelper.BitmapToBase64Jpeg(bitmap);
+        bitmap.Dispose();
+
+        var captured = new List<CapturedScreen>(1)
         {
-            var screen = allScreens[i];
-            bool isFocus = screen.Equals(focusScreen);
-
-            var (bitmap, ssW, ssH, physW, physH) =
-                ImageHelper.CaptureSpecificScreen(screen, drawCursor: isFocus, cursorX, cursorY);
-            var base64 = ImageHelper.BitmapToBase64Jpeg(bitmap);
-            bitmap.Dispose();
-
-            captured.Add(new CapturedScreen(
-                Index: i,
-                IsFocus: isFocus,
+            new CapturedScreen(
+                Index: focusIndex,
+                IsFocus: true,
                 ImageBase64: base64,
                 ScreenshotWidth: ssW,
                 ScreenshotHeight: ssH,
                 ScreenPhysicalWidth: physW,
                 ScreenPhysicalHeight: physH,
-                ScreenOffsetX: screen.Bounds.X,
-                ScreenOffsetY: screen.Bounds.Y,
-                ScreenLogicalWidth: screen.Bounds.Width,
-                ScreenLogicalHeight: screen.Bounds.Height));
-        }
+                ScreenOffsetX: focusScreen.Bounds.X,
+                ScreenOffsetY: focusScreen.Bounds.Y,
+                ScreenLogicalWidth: focusScreen.Bounds.Width,
+                ScreenLogicalHeight: focusScreen.Bounds.Height)
+        };
 
         // Capture active window at native resolution for high-detail view.
         // Wrapped in try/catch — if it fails (off-screen, minimized, etc.), we skip it.

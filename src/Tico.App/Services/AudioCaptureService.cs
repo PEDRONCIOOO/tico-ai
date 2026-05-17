@@ -8,7 +8,9 @@ public class AudioCaptureService : IAudioCaptureService, IDisposable
     private WaveInEvent? _waveIn;
     private MemoryStream? _buffer;
     private WaveFileWriter? _writer;
+    private System.Threading.Timer? _maxDurationTimer;
 
+    private const int MaxRecordingSeconds = 60;
     private static readonly WaveFormat WhisperFormat = new(16000, 16, 1);
 
     public event Action<double>? AudioPowerChanged;
@@ -24,6 +26,11 @@ public class AudioCaptureService : IAudioCaptureService, IDisposable
         _writer = new WaveFileWriter(new IgnoreDisposeStream(_buffer), WhisperFormat);
         _waveIn.DataAvailable += OnDataAvailable;
         _waveIn.StartRecording();
+        _maxDurationTimer = new System.Threading.Timer(
+            _ => _waveIn?.StopRecording(),
+            null,
+            MaxRecordingSeconds * 1000,
+            Timeout.Infinite);
     }
 
     private void OnDataAvailable(object? sender, WaveInEventArgs e)
@@ -54,6 +61,8 @@ public class AudioCaptureService : IAudioCaptureService, IDisposable
 
     public byte[] StopRecording()
     {
+        _maxDurationTimer?.Dispose();
+        _maxDurationTimer = null;
         _waveIn?.StopRecording();
         _writer?.Flush();
         var data = _buffer?.ToArray() ?? [];
@@ -68,6 +77,7 @@ public class AudioCaptureService : IAudioCaptureService, IDisposable
 
     public void Dispose()
     {
+        _maxDurationTimer?.Dispose();
         _waveIn?.StopRecording();
         _writer?.Dispose();
         _waveIn?.Dispose();

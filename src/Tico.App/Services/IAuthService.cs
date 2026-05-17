@@ -18,4 +18,5 @@ public interface IAuthService
 {
     Task<Session> LoginAsync(string email, string password, CancellationToken ct = default);
     Task<Session> RefreshAsync(string refreshToken, CancellationToken ct = default);
+    Task LogoutAsync(string accessToken, CancellationToken ct = default);
 }

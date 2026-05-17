@@ -4,6 +4,10 @@ import { rateLimit } from '@/lib/rate-limit'
 
 // GET /api/posts?slug=xxx — get like count + comments + user's like status
 export async function GET(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  if (!rateLimit(`posts-read:${ip}`, 60, 60_000))
+    return NextResponse.json({ error: 'rate limited' }, { status: 429 })
+
   const slug = req.nextUrl.searchParams.get('slug')
   if (!slug || slug.length > 200 || !/^[a-z0-9-]+$/.test(slug))
     return NextResponse.json({ error: 'invalid slug' }, { status: 400 })

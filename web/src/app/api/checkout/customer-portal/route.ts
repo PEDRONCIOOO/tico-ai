@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient, createServiceClient } from '@/lib/supabase-server'
+import { rateLimit } from '@/lib/rate-limit'
 import { stripe } from '@/lib/stripe'
 
 export async function POST(req: NextRequest) {
@@ -8,6 +9,9 @@ export async function POST(req: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
+
+  if (!rateLimit(`portal:${user.id}`, 5, 60_000))
+    return NextResponse.json({ error: 'rate limited' }, { status: 429 })
 
   const service = createServiceClient()
   const { data: profile } = await service

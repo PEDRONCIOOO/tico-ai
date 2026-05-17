@@ -238,9 +238,9 @@ public partial class App : Application
                 _chatWindow?.Hide();
             }
         };
-        _settingsWindow.LogoutRequested += () =>
+        _settingsWindow.LogoutRequested += async () =>
         {
-            _sessionManager.Logout();
+            await _sessionManager.LogoutAsync();
             MessageBox.Show(
                 "Sessão encerrada. Abra o Tico novamente para entrar.",
                 "Tico", MessageBoxButton.OK, MessageBoxImage.Information);
