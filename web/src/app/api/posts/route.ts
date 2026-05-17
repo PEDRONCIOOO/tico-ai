@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient, createServiceClient } from '@/lib/supabase-server'
+import { rateLimit } from '@/lib/rate-limit'
 
 // GET /api/posts?slug=xxx — get like count + comments + user's like status
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get('slug')
-  if (!slug) return NextResponse.json({ error: 'missing slug' }, { status: 400 })
+  if (!slug || slug.length > 200 || !/^[a-z0-9-]+$/.test(slug))
+    return NextResponse.json({ error: 'invalid slug' }, { status: 400 })
 
   const service = createServiceClient()
 
@@ -34,9 +36,14 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   const body = await req.json().catch(() => ({}))
-  const { slug, action, content, displayName } = body
+  const { slug, action, content } = body
 
-  if (!slug) return NextResponse.json({ error: 'missing slug' }, { status: 400 })
+  if (!slug || typeof slug !== 'string' || slug.length > 200 || !/^[a-z0-9-]+$/.test(slug))
+    return NextResponse.json({ error: 'invalid slug' }, { status: 400 })
+
+  // Rate limit: 20 actions per minute per user
+  if (!rateLimit(`posts:${user.id}`, 20, 60_000))
+    return NextResponse.json({ error: 'rate limited' }, { status: 429 })
 
   const service = createServiceClient()
 
@@ -52,10 +59,21 @@ export async function POST(req: NextRequest) {
 
   if (action === 'comment') {
     if (!content?.trim()) return NextResponse.json({ error: 'empty comment' }, { status: 400 })
+    if (content.length > 5000) return NextResponse.json({ error: 'comment too long' }, { status: 400 })
+
+    // Derive display_name server-side from profile — never trust client input
+    const { data: profile } = await service
+      .from('profiles')
+      .select('display_name, email')
+      .eq('id', user.id)
+      .single()
+
+    const safeName = profile?.display_name || profile?.email?.split('@')[0] || user.email?.split('@')[0] || 'anon'
+
     await service.from('post_comments').insert({
       post_slug: slug,
       user_id: user.id,
-      display_name: displayName || user.email?.split('@')[0] || 'anon',
+      display_name: safeName,
       content: content.trim(),
     })
     return NextResponse.json({ status: 'commented' })

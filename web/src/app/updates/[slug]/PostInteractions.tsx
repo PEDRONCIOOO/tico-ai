@@ -49,7 +49,6 @@ export default function PostInteractions({ slug }: { slug: string }) {
   const handleComment = async () => {
     if (!newComment.trim() || sending || !isAuthed) return
     setSending(true)
-    const { data: { user } } = await supabase.auth.getUser()
     await fetch('/api/posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -57,7 +56,6 @@ export default function PostInteractions({ slug }: { slug: string }) {
         slug,
         action: 'comment',
         content: newComment,
-        displayName: user?.user_metadata?.display_name || user?.email?.split('@')[0],
       }),
     })
     setNewComment('')
