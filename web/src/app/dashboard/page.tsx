@@ -396,20 +396,18 @@ function FeedbackCard({ email, locale }: { email: string; locale: Locale }) {
     if (!message.trim()) return
     setStatus('sending')
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setStatus('error'); return }
-
-    const { error } = await supabase
-      .from('feedback')
-      .insert({ user_id: user.id, email, message: message.trim() })
-
-    if (error) {
-      console.error('Feedback insert error:', error)
-      setStatus('error')
-    } else {
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message.trim() }),
+      })
+      if (!res.ok) throw new Error()
       setStatus('sent')
       setMessage('')
       setTimeout(() => setStatus('idle'), 4000)
+    } catch {
+      setStatus('error')
     }
   }
 
