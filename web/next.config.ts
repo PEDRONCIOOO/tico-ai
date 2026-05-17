@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
@@ -18,11 +20,11 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
+              `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob:",
-              "font-src 'self'",
-              "connect-src 'self' https://*.supabase.co",
+              "img-src 'self' data: blob: https://dl.ticoai.app",
+              "font-src 'self' https://fonts.gstatic.com",
+              "connect-src 'self' https://*.supabase.co https://api.ticoai.app",
               "frame-ancestors 'none'",
             ].join("; "),
           },

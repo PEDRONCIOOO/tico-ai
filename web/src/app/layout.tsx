@@ -10,6 +10,22 @@ export const metadata: Metadata = {
     description: 'Ele fica do lado do seu cursor e vê tudo na sua tela. Como um amigo que é muito bom em tudo.',
     type: 'website',
     locale: 'pt_BR',
+    url: 'https://ticoai.app',
+    siteName: 'Tico',
+    images: [
+      {
+        url: 'https://dl.ticoai.app/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Tico — seu amigo IA que te acompanha',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Tico — seu buddy de IA no Windows',
+    description: 'Ele fica do lado do seu cursor e vê tudo na sua tela. Como um amigo que é muito bom em tudo.',
+    images: ['https://dl.ticoai.app/og-image.png'],
   },
 }
 

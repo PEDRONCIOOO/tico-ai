@@ -148,7 +148,7 @@ function DashboardContent() {
       {/* Nav */}
       <nav className="border-b border-black/[0.04] bg-white/80 backdrop-blur-md">
         <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+          <a href="/" className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] flex items-center justify-center">
               <div className="flex gap-[3px]">
                 <div className="w-[3px] h-[3px] rounded-full bg-white" />
@@ -156,7 +156,7 @@ function DashboardContent() {
               </div>
             </div>
             <span className="font-bold text-[15px] tracking-tight" style={{ fontFamily: 'Bricolage Grotesque, sans-serif' }}>tico</span>
-          </div>
+          </a>
           <div className="flex items-center gap-4">
             <LocaleToggle locale={locale} />
             <button onClick={handleLogout} className="text-[13px] text-[#8A8A8A] hover:text-[#1A1A1A] transition">

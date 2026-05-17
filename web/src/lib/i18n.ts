@@ -86,6 +86,7 @@ const dict: Record<string, Record<Locale, string>> = {
   'nav.plans': { 'pt-br': 'planos', en: 'plans' },
   'nav.profile': { 'pt-br': 'perfil', en: 'profile' },
   'nav.login': { 'pt-br': 'entrar', en: 'log in' },
+  'nav.updates': { 'pt-br': 'atualizacoes', en: 'updates' },
   'nav.download': { 'pt-br': 'baixar', en: 'download' },
 
   // Landing — hero
@@ -143,6 +144,40 @@ const dict: Record<string, Record<Locale, string>> = {
   'footer.credit': { 'pt-br': 'feito por', en: 'made by' },
   'footer.team': { 'pt-br': 'Equipe Tico', en: 'Tico Team' },
   'footer.tagline': { 'pt-br': 'pra quem quer aprender mais rápido', en: 'for those who want to learn faster' },
+  'footer.terms': { 'pt-br': 'termos', en: 'terms' },
+  'footer.privacy': { 'pt-br': 'privacidade', en: 'privacy' },
+
+  // Trust badges
+  'trust.poweredBy': { 'pt-br': 'powered by Claude', en: 'powered by Claude' },
+  'trust.encrypted': { 'pt-br': 'criptografia 256-bit', en: '256-bit encrypted' },
+  'trust.madeIn': { 'pt-br': 'feito no Brasil', en: 'made in Brazil' },
+
+  // Testimonials
+  'testimonials.title': { 'pt-br': 'quem usa, recomenda.', en: 'loved by users.' },
+  'testimonials.1.quote': { 'pt-br': 'o tico me salvou horas tentando achar ferramentas no figma. agora eu so pergunto e ele aponta.', en: 'tico saved me hours trying to find tools in figma. now I just ask and it points.' },
+  'testimonials.1.name': { 'pt-br': 'Ana S.', en: 'Ana S.' },
+  'testimonials.1.role': { 'pt-br': 'designer', en: 'designer' },
+  'testimonials.2.quote': { 'pt-br': 'uso o tico todo dia pra navegar no vscode e no terminal. e como pair programming com um amigo.', en: 'I use tico every day to navigate vscode and the terminal. it\'s like pair programming with a friend.' },
+  'testimonials.2.name': { 'pt-br': 'Lucas M.', en: 'Lucas M.' },
+  'testimonials.2.role': { 'pt-br': 'desenvolvedor', en: 'developer' },
+  'testimonials.3.quote': { 'pt-br': 'estou aprendendo blender e o tico me guia passo a passo. melhor investimento que fiz.', en: 'I\'m learning blender and tico guides me step by step. best investment I\'ve made.' },
+  'testimonials.3.name': { 'pt-br': 'Maria R.', en: 'Maria R.' },
+  'testimonials.3.role': { 'pt-br': 'estudante', en: 'student' },
+
+  // FAQ
+  'faq.title': { 'pt-br': 'perguntas frequentes', en: 'frequently asked questions' },
+  'faq.1.q': { 'pt-br': 'o tico e seguro?', en: 'is tico safe?' },
+  'faq.1.a': { 'pt-br': 'sim. screenshots sao processados em tempo real e nunca armazenados. todos os dados sao criptografados e trafegam via https.', en: 'yes. screenshots are processed in real-time and never stored. all data is encrypted and transmitted via https.' },
+  'faq.2.q': { 'pt-br': 'funciona sem internet?', en: 'does it work offline?' },
+  'faq.2.a': { 'pt-br': 'nao, o tico precisa de internet para processamento de ia, reconhecimento de voz e sintese de fala.', en: 'no, tico needs internet for AI processing, voice recognition, and text-to-speech.' },
+  'faq.3.q': { 'pt-br': 'como cancelo minha assinatura?', en: 'how do I cancel my subscription?' },
+  'faq.3.a': { 'pt-br': 'pelo portal de gerenciamento do stripe no painel do tico, ou entre em contato pelo support@ticoai.app.', en: 'through the stripe management portal in the tico dashboard, or contact us at support@ticoai.app.' },
+  'faq.4.q': { 'pt-br': 'quais apps o tico suporta?', en: 'which apps does tico support?' },
+  'faq.4.a': { 'pt-br': 'qualquer app no windows. o tico ve sua tela e pode te ajudar com qualquer software.', en: 'any app on windows. tico sees your screen and can help you with any software.' },
+  'faq.5.q': { 'pt-br': 'o tico grava minha tela?', en: 'does tico record my screen?' },
+  'faq.5.a': { 'pt-br': 'nao. screenshots sao capturados apenas quando voce aperta a tecla, processados instantaneamente e descartados.', en: 'no. screenshots are captured only when you press the hotkey, processed instantly, and discarded.' },
+  'faq.6.q': { 'pt-br': 'posso usar em portugues e ingles?', en: 'can I use it in Portuguese and English?' },
+  'faq.6.a': { 'pt-br': 'sim, o tico detecta seu idioma automaticamente e responde na mesma lingua.', en: 'yes, tico detects your language automatically and responds in the same language.' },
 }
 
 export function t(key: string, locale: Locale): string {

@@ -182,6 +182,27 @@ function AuthNavButton({ locale }: { locale: Locale }) {
   )
 }
 
+// ─── FAQ Item ────────────────────────────────────────────────────
+function FaqItem({ question, answer }: { question: string; answer: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="bg-white rounded-xl border border-gray-200/70 overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-6 py-4 text-left cursor-pointer"
+      >
+        <span className={`text-[15px] font-medium ${open ? 'text-[#7C3AED]' : 'text-[#1A1A1A]'}`}>{question}</span>
+        <span className={`text-lg transition-transform duration-200 ${open ? 'rotate-45 text-[#7C3AED]' : 'text-[#8A8A8A]'}`}>+</span>
+      </button>
+      {open && (
+        <div className="px-6 pb-4 text-[14px] text-[#4A4A4A] leading-relaxed">
+          {answer}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Active Users Counter ────────────────────────────────────────
 function ActiveUsersCounter({ locale }: { locale: Locale }) {
   const [count, setCount] = useState<number | null>(null)
@@ -259,6 +280,7 @@ export default function Home() {
           <div className="flex items-center gap-6">
             <a href="#features" className="text-[13px] text-[#8A8A8A] hover:text-[#1A1A1A] transition hidden sm:block">{t('nav.features', locale)}</a>
             <a href="#pricing" className="text-[13px] text-[#8A8A8A] hover:text-[#1A1A1A] transition hidden sm:block">{t('nav.plans', locale)}</a>
+            <a href="/updates" className="text-[13px] text-[#8A8A8A] hover:text-[#1A1A1A] transition hidden sm:block">{t('nav.updates', locale)}</a>
             <AuthNavButton locale={locale} />
             <LocaleToggle locale={locale} />
             <a href={DOWNLOAD_URL} className="bg-[#1A1A1A] text-white text-[13px] font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition">
@@ -310,6 +332,24 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Trust Badges */}
+      <div className="py-8 border-b border-black/[0.04]">
+        <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center gap-8 text-[13px] text-[#8A8A8A]">
+          <span className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-[#7C3AED]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            {t('trust.poweredBy', locale)}
+          </span>
+          <span className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-[#7C3AED]" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            {t('trust.encrypted', locale)}
+          </span>
+          <span className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-[#7C3AED]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            {t('trust.madeIn', locale)}
+          </span>
+        </div>
+      </div>
+
       {/* Use Cases */}
       <section id="features" className="py-24">
         <div className="max-w-6xl mx-auto px-6">
@@ -352,6 +392,34 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-24">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-14" style={{ fontFamily: 'Bricolage Grotesque' }}>
+            {t('testimonials.title', locale)}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="bg-white border border-gray-200/70 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
+                <div className="text-3xl text-[#7C3AED]/20 font-serif mb-3">&ldquo;</div>
+                <p className="text-[14px] text-[#4A4A4A] leading-relaxed mb-5 italic">
+                  {t(`testimonials.${i}.quote`, locale)}
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">{t(`testimonials.${i}.name`, locale)[0]}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-[#1A1A1A]">{t(`testimonials.${i}.name`, locale)}</p>
+                    <p className="text-xs text-[#8A8A8A]">{t(`testimonials.${i}.role`, locale)}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Pricing */}
       <section id="pricing" className="py-24">
         <div className="max-w-6xl mx-auto px-6">
@@ -369,6 +437,20 @@ export default function Home() {
             <PricingCard tier={t('plan.unlimited', locale)} price="R$99,90" period={t('plan.perMonth', locale)}
               features={[t('feat.unlimited', locale), t('feat.voice', locale), t('feat.cursorPointing', locale), t('feat.opus', locale), t('feat.priority', locale), t('feat.earlyAccess', locale)]}
               cta={t('pricing.cta.unlimited', locale)} href={subscribeHref} />
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-24 bg-[#F3F2EF]">
+        <div className="max-w-3xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-14" style={{ fontFamily: 'Bricolage Grotesque' }}>
+            {t('faq.title', locale)}
+          </h2>
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <FaqItem key={i} question={t(`faq.${i}.q`, locale)} answer={t(`faq.${i}.a`, locale)} />
+            ))}
           </div>
         </div>
       </section>
@@ -409,8 +491,11 @@ export default function Home() {
             </div>
             <span className="text-[13px] font-semibold tracking-tight" style={{ fontFamily: 'Bricolage Grotesque' }}>tico</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <p className="text-[12px] text-[#8A8A8A]">{t('footer.credit', locale)} <a className='text-blue-500' href="https://ticoai.app" target='_blank'>{t('footer.team', locale)}</a> {t('footer.tagline', locale)}</p>
+            <span className="text-[#D1D1D1]">·</span>
+            <a href="/terms" className="text-[12px] text-[#8A8A8A] hover:text-[#1A1A1A] transition">{t('footer.terms', locale)}</a>
+            <a href="/privacy" className="text-[12px] text-[#8A8A8A] hover:text-[#1A1A1A] transition">{t('footer.privacy', locale)}</a>
             <a href="https://www.linkedin.com/company/ticoai" target="_blank" rel="noopener noreferrer" className="text-[#8A8A8A] hover:text-[#1A1A1A] transition">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
