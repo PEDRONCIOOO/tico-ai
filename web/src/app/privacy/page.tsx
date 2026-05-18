@@ -1,4 +1,17 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { t, type Locale } from '@/lib/i18n'
+
 export default function PrivacyPage() {
+  const [locale, setLocale] = useState<Locale>('pt-br')
+
+  useEffect(() => {
+    const cookieLocale = document.cookie.match(/locale=(pt-br|en)/)?.[1] as Locale | undefined
+    const detected = cookieLocale ?? (navigator.language.startsWith('pt') ? 'pt-br' : 'en') as Locale
+    setLocale(detected)
+  }, [])
+
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
       <nav className="border-b border-black/[0.04] bg-white/80 backdrop-blur-md">
@@ -12,101 +25,96 @@ export default function PrivacyPage() {
             </div>
             <span className="font-bold text-[15px] tracking-tight" style={{ fontFamily: 'Bricolage Grotesque, sans-serif' }}>tico</span>
           </a>
-          <a href="/" className="text-[13px] text-[#8A8A8A] hover:text-[#1A1A1A] transition">voltar</a>
+          <a href="/" className="text-[13px] text-[#8A8A8A] hover:text-[#1A1A1A] transition">{t('privacy.back', locale)}</a>
         </div>
       </nav>
 
       <main className="max-w-3xl mx-auto px-6 py-14">
-        <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ fontFamily: 'Bricolage Grotesque, sans-serif' }}>politica de privacidade</h1>
-        <p className="text-sm text-[#8A8A8A] mb-10">ultima atualizacao: maio 2026</p>
+        <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ fontFamily: 'Bricolage Grotesque, sans-serif' }}>{t('privacy.title', locale)}</h1>
+        <p className="text-sm text-[#8A8A8A] mb-10">{t('privacy.lastUpdated', locale)}</p>
 
         <div className="space-y-8 text-[15px] text-[#4A4A4A] leading-relaxed">
           <section>
-            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">1. dados que coletamos</h2>
-            <p>coletamos apenas o necessario para o funcionamento do servico:</p>
+            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">{t('privacy.1.title', locale)}</h2>
+            <p>{t('privacy.1.text', locale)}</p>
             <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li><strong>conta:</strong> email, nome e senha (armazenada com hash seguro pelo supabase)</li>
-              <li><strong>uso:</strong> contagem de chamadas ao assistente por periodo (para controle de plano)</li>
-              <li><strong>pagamentos:</strong> historico de transacoes (valores, datas, metodo). dados de cartao sao processados diretamente pelo stripe e nunca passam pelos nossos servidores</li>
-              <li><strong>feedback:</strong> mensagens enviadas voluntariamente pelo painel</li>
+              {t('privacy.1.items', locale).split('|').map((item, i) => {
+                const [bold, ...rest] = item.split(':')
+                return rest.length > 0
+                  ? <li key={i}><strong>{bold}:</strong>{rest.join(':')}</li>
+                  : <li key={i}>{item}</li>
+              })}
             </ul>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">2. dados que NAO coletamos</h2>
-            <p>o tico captura screenshots da sua tela apenas quando voce aperta a tecla de ativacao. essas imagens sao:</p>
+            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">{t('privacy.2.title', locale)}</h2>
+            <p>{t('privacy.2.text', locale)}</p>
             <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li>processadas em tempo real pela ia</li>
-              <li>descartadas imediatamente apos o processamento</li>
-              <li>nunca armazenadas nos nossos servidores</li>
-              <li>nunca compartilhadas com terceiros alem do processamento pela ia</li>
+              {t('privacy.2.items', locale).split('|').map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
             </ul>
-            <p className="mt-2">o mesmo vale para o audio capturado — e transcrito em tempo real e descartado.</p>
+            <p className="mt-2">{t('privacy.2.extra', locale)}</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">3. como usamos seus dados</h2>
+            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">{t('privacy.3.title', locale)}</h2>
             <ul className="list-disc pl-6 space-y-1">
-              <li>autenticar sua conta e manter sua sessao</li>
-              <li>controlar limites de uso do seu plano</li>
-              <li>processar pagamentos e gerenciar assinaturas</li>
-              <li>enviar comunicacoes sobre o servico (se necessario)</li>
-              <li>melhorar o produto com base em padroes de uso agregados</li>
+              {t('privacy.3.items', locale).split('|').map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
             </ul>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">4. armazenamento e seguranca</h2>
-            <p>seus dados sao armazenados no supabase (postgresql) com criptografia em repouso. tokens de autenticacao no aplicativo desktop sao protegidos com windows dpapi (criptografia por usuario). toda comunicacao e feita via https com tls 1.2+.</p>
+            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">{t('privacy.4.title', locale)}</h2>
+            <p>{t('privacy.4.text', locale)}</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">5. servicos de terceiros</h2>
-            <p>usamos os seguintes servicos para operar o tico:</p>
+            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">{t('privacy.5.title', locale)}</h2>
+            <p>{t('privacy.5.text', locale)}</p>
             <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li><strong>anthropic (claude):</strong> processamento de ia para respostas e analise de tela</li>
-              <li><strong>openai (whisper):</strong> transcricao de voz para texto</li>
-              <li><strong>openai (tts):</strong> conversao de texto para voz</li>
-              <li><strong>stripe:</strong> processamento de pagamentos com cartao (usd)</li>
-              <li><strong>abacatepay:</strong> processamento de pagamentos pix (brl)</li>
-              <li><strong>supabase:</strong> autenticacao e banco de dados</li>
-              <li><strong>cloudflare:</strong> hospedagem de api e downloads</li>
-              <li><strong>vercel:</strong> hospedagem do site</li>
+              {t('privacy.5.items', locale).split('|').map((item, i) => {
+                const [bold, ...rest] = item.split(':')
+                return rest.length > 0
+                  ? <li key={i}><strong>{bold}:</strong>{rest.join(':')}</li>
+                  : <li key={i}>{item}</li>
+              })}
             </ul>
-            <p className="mt-2">cada servico tem sua propria politica de privacidade. recomendamos que voce as consulte.</p>
+            <p className="mt-2">{t('privacy.5.extra', locale)}</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">6. cookies</h2>
-            <p>usamos cookies essenciais para autenticacao (sessao do supabase) e preferencia de idioma. nao usamos cookies de rastreamento, analytics ou publicidade.</p>
+            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">{t('privacy.6.title', locale)}</h2>
+            <p>{t('privacy.6.text', locale)}</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">7. seus direitos</h2>
-            <p>voce tem o direito de:</p>
+            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">{t('privacy.7.title', locale)}</h2>
+            <p>{t('privacy.7.text', locale)}</p>
             <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li>acessar os dados que temos sobre voce</li>
-              <li>corrigir dados incorretos</li>
-              <li>solicitar a exclusao da sua conta e dados</li>
-              <li>exportar seus dados em formato legivel</li>
-              <li>cancelar sua assinatura a qualquer momento</li>
+              {t('privacy.7.items', locale).split('|').map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
             </ul>
-            <p className="mt-2">para exercer esses direitos, entre em contato pelo email abaixo.</p>
+            <p className="mt-2">{t('privacy.7.extra', locale)}</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">8. retencao de dados</h2>
-            <p>mantemos seus dados enquanto sua conta estiver ativa. apos exclusao da conta, dados pessoais sao removidos em ate 30 dias. dados de pagamento podem ser retidos por mais tempo conforme exigencias legais e fiscais.</p>
+            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">{t('privacy.8.title', locale)}</h2>
+            <p>{t('privacy.8.text', locale)}</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">9. menores de idade</h2>
-            <p>o tico nao e destinado a menores de 13 anos. nao coletamos intencionalmente dados de criancas. se soubermos que uma crianca menor de 13 anos criou uma conta, a excluiremos.</p>
+            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">{t('privacy.9.title', locale)}</h2>
+            <p>{t('privacy.9.text', locale)}</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">10. contato</h2>
-            <p>duvidas sobre privacidade? entre em contato: <a href="mailto:support@ticoai.app" className="text-[#7C3AED] hover:underline">support@ticoai.app</a></p>
+            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">{t('privacy.10.title', locale)}</h2>
+            <p>{t('privacy.10.text', locale)} <a href="mailto:support@ticoai.app" className="text-[#7C3AED] hover:underline">support@ticoai.app</a></p>
           </section>
         </div>
       </main>

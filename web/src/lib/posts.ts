@@ -14,17 +14,27 @@ export type Post = {
 
 const postsDir = path.join(process.cwd(), 'content', 'updates')
 
-export function getAllPosts(): Post[] {
+export function getAllPosts(locale: string = 'pt-br'): Post[] {
   if (!fs.existsSync(postsDir)) return []
 
-  const files = fs.readdirSync(postsDir).filter(f => f.endsWith('.md'))
+  const allFiles = fs.readdirSync(postsDir).filter(f => f.endsWith('.md'))
 
-  return files
-    .map(file => {
+  // Extract unique slugs from filenames like "my-post.pt-br.md"
+  const slugs = [...new Set(
+    allFiles.map(f => f.replace(/\.(pt-br|en)\.md$/, ''))
+  )]
+
+  return slugs
+    .map(slug => {
+      const localeFile = `${slug}.${locale}.md`
+      const fallbackFile = `${slug}.pt-br.md`
+      const file = allFiles.includes(localeFile) ? localeFile : fallbackFile
+      if (!allFiles.includes(file)) return null
+
       const raw = fs.readFileSync(path.join(postsDir, file), 'utf-8')
       const { data, content } = matter(raw)
       return {
-        slug: data.slug || file.replace('.md', ''),
+        slug: data.slug || slug,
         title: data.title || '',
         date: data.date?.toString() || '',
         author: data.author || 'Equipe Tico',
@@ -32,10 +42,11 @@ export function getAllPosts(): Post[] {
         html: marked.parse(content) as string,
       }
     })
+    .filter((p): p is Post => p !== null)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
 
-export function getPost(slug: string): Post | null {
-  const posts = getAllPosts()
+export function getPost(slug: string, locale: string = 'pt-br'): Post | null {
+  const posts = getAllPosts(locale)
   return posts.find(p => p.slug === slug) ?? null
 }

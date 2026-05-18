@@ -1,8 +1,12 @@
+import { cookies } from 'next/headers'
 import { getAllPosts } from '@/lib/posts'
+import { t, type Locale } from '@/lib/i18n'
 import Link from 'next/link'
 
-export default function UpdatesPage() {
-  const posts = getAllPosts()
+export default async function UpdatesPage() {
+  const cookieStore = await cookies()
+  const locale = (cookieStore.get('locale')?.value === 'en' ? 'en' : 'pt-br') as Locale
+  const posts = getAllPosts(locale)
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
@@ -17,16 +21,16 @@ export default function UpdatesPage() {
             </div>
             <span className="font-bold text-[15px] tracking-tight" style={{ fontFamily: 'Bricolage Grotesque, sans-serif' }}>tico</span>
           </a>
-          <a href="/" className="text-[13px] text-[#8A8A8A] hover:text-[#1A1A1A] transition">voltar</a>
+          <a href="/" className="text-[13px] text-[#8A8A8A] hover:text-[#1A1A1A] transition">{t('updates.back', locale)}</a>
         </div>
       </nav>
 
       <main className="max-w-3xl mx-auto px-6 py-14">
-        <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ fontFamily: 'Bricolage Grotesque, sans-serif' }}>atualizacoes</h1>
-        <p className="text-sm text-[#8A8A8A] mb-10">novidades e mudancas no tico</p>
+        <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ fontFamily: 'Bricolage Grotesque, sans-serif' }}>{t('updates.title', locale)}</h1>
+        <p className="text-sm text-[#8A8A8A] mb-10">{t('updates.subtitle', locale)}</p>
 
         {posts.length === 0 ? (
-          <p className="text-[#8A8A8A]">nenhuma atualizacao ainda.</p>
+          <p className="text-[#8A8A8A]">{t('updates.empty', locale)}</p>
         ) : (
           <div className="space-y-4">
             {posts.map(post => (
@@ -42,7 +46,7 @@ export default function UpdatesPage() {
                     <div>
                       <p className="text-xs font-semibold text-[#1A1A1A]">{post.author}</p>
                       <p className="text-[11px] text-[#8A8A8A]">
-                        {new Date(post.date).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        {new Date(post.date).toLocaleDateString(locale === 'pt-br' ? 'pt-BR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                     </div>
                   </div>

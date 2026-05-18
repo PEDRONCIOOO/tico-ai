@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { t, type Locale } from '@/lib/i18n'
 
 type Comment = {
   id: string
@@ -10,7 +11,7 @@ type Comment = {
   created_at: string
 }
 
-export default function PostInteractions({ slug }: { slug: string }) {
+export default function PostInteractions({ slug, locale }: { slug: string; locale: Locale }) {
   const [likes, setLikes] = useState(0)
   const [userLiked, setUserLiked] = useState(false)
   const [comments, setComments] = useState<Comment[]>([])
@@ -84,7 +85,7 @@ export default function PostInteractions({ slug }: { slug: string }) {
       {/* Comments section */}
       <div className="mt-8">
         <h3 className="text-sm font-bold text-[#8A8A8A] uppercase tracking-widest mb-4">
-          comentarios ({comments.length})
+          {t('updates.comments', locale)} ({comments.length})
         </h3>
 
         {comments.length > 0 && (
@@ -97,7 +98,7 @@ export default function PostInteractions({ slug }: { slug: string }) {
                   </div>
                   <span className="text-sm font-medium text-[#1A1A1A]">{c.display_name}</span>
                   <span className="text-[11px] text-[#8A8A8A]">
-                    {new Date(c.created_at).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}
+                    {new Date(c.created_at).toLocaleDateString(locale === 'pt-br' ? 'pt-BR' : 'en-US', { day: 'numeric', month: 'short' })}
                   </span>
                 </div>
                 <p className="text-sm text-[#4A4A4A] leading-relaxed">{c.content}</p>
@@ -111,7 +112,7 @@ export default function PostInteractions({ slug }: { slug: string }) {
             <input
               value={newComment}
               onChange={e => setNewComment(e.target.value)}
-              placeholder="escreva um comentario..."
+              placeholder={t('updates.commentPlaceholder', locale)}
               onKeyDown={e => e.key === 'Enter' && handleComment()}
               className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED]/20 transition bg-white"
             />
@@ -120,12 +121,12 @@ export default function PostInteractions({ slug }: { slug: string }) {
               disabled={!newComment.trim() || sending}
               className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-[#1A1A1A] text-white hover:bg-gray-800 transition disabled:opacity-40"
             >
-              {sending ? '...' : 'enviar'}
+              {sending ? '...' : t('updates.send', locale)}
             </button>
           </div>
         ) : (
           <p className="text-sm text-[#8A8A8A]">
-            <a href="/login" className="text-[#7C3AED] hover:underline">entre na sua conta</a> para curtir e comentar.
+            <a href="/login" className="text-[#7C3AED] hover:underline">{t('updates.loginPrompt1', locale)}</a> {t('updates.loginPrompt2', locale)}
           </p>
         )}
       </div>

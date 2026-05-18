@@ -1,4 +1,6 @@
+import { cookies } from 'next/headers'
 import { getAllPosts, getPost } from '@/lib/posts'
+import { t, type Locale } from '@/lib/i18n'
 import { notFound } from 'next/navigation'
 import PostInteractions from './PostInteractions'
 
@@ -8,7 +10,9 @@ export function generateStaticParams() {
 
 export default async function UpdatePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const post = getPost(slug)
+  const cookieStore = await cookies()
+  const locale = (cookieStore.get('locale')?.value === 'en' ? 'en' : 'pt-br') as Locale
+  const post = getPost(slug, locale)
   if (!post) notFound()
 
   return (
@@ -24,7 +28,7 @@ export default async function UpdatePage({ params }: { params: Promise<{ slug: s
             </div>
             <span className="font-bold text-[15px] tracking-tight" style={{ fontFamily: 'Bricolage Grotesque, sans-serif' }}>tico</span>
           </a>
-          <a href="/updates" className="text-[13px] text-[#8A8A8A] hover:text-[#1A1A1A] transition">todas atualizacoes</a>
+          <a href="/updates" className="text-[13px] text-[#8A8A8A] hover:text-[#1A1A1A] transition">{t('updates.allUpdates', locale)}</a>
         </div>
       </nav>
 
@@ -40,7 +44,7 @@ export default async function UpdatePage({ params }: { params: Promise<{ slug: s
           <div>
             <p className="text-sm font-semibold text-[#1A1A1A]">{post.author}</p>
             <p className="text-xs text-[#8A8A8A]">
-              {new Date(post.date).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+              {new Date(post.date).toLocaleDateString(locale === 'pt-br' ? 'pt-BR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           </div>
         </div>
@@ -64,7 +68,7 @@ export default async function UpdatePage({ params }: { params: Promise<{ slug: s
         />
 
         {/* Likes + Comments */}
-        <PostInteractions slug={post.slug} />
+        <PostInteractions slug={post.slug} locale={locale} />
       </main>
     </div>
   )
