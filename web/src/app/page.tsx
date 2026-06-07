@@ -51,11 +51,11 @@ function TicoBuddy() {
   if (!visible) return null
 
   return (
-    <div className="fixed pointer-events-none z-[999]" style={{ left: buddyPos.x - 20, top: buddyPos.y - 20 }}>
+    <div className="fixed pointer-events-none z-[999]" style={{ left: buddyPos.x - 15, top: buddyPos.y - 15 }}>
       <div className="relative">
-        <div className="absolute -inset-3 rounded-full bg-purple-500/15 blur-xl" />
-        <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] shadow-[0_4px_24px_rgba(124,58,237,0.35)] flex items-center justify-center">
-          <div className="flex gap-[7px]" style={{ transform: `translate(${ex}px, ${ey}px)` }}>
+        <div className="absolute -inset-2.5 rounded-full bg-purple-500/15 blur-xl" />
+        <div className="relative w-[30px] h-[30px] rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] shadow-[0_4px_24px_rgba(124,58,237,0.35)] flex items-center justify-center">
+          <div className="flex gap-[5px]" style={{ transform: `translate(${ex}px, ${ey}px)` }}>
             <div className="w-[5px] h-[5px] rounded-full bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)]" />
             <div className="w-[5px] h-[5px] rounded-full bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)]" />
           </div>
