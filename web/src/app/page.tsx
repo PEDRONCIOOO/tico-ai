@@ -290,44 +290,55 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero — Asymmetric */}
-      <section className="min-h-screen pt-14 flex items-center">
+      {/* Hero */}
+      <section className="pt-14">
         <div className="max-w-6xl mx-auto px-6 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-16 items-center">
-            <div className="lg:col-span-3 pt-12 lg:pt-0">
-              <div className="animate-in">
-                <span className="inline-block bg-[#7C3AED]/8 text-[#7C3AED] text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-full mb-6 border border-[#7C3AED]/15">
-                  {t('hero.badge', locale)}
-                </span>
-              </div>
-              <h1 className="animate-in delay-1 text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold leading-[1.05] tracking-tight mb-6" style={{ fontFamily: 'Bricolage Grotesque' }}>
-                {t('hero.title1', locale)}<br />
-                <span className="bg-gradient-to-r from-[#7C3AED] to-[#FF6B6B] bg-clip-text text-transparent">
-                  {t('hero.title2', locale)}
-                </span>
-              </h1>
-              <p className="animate-in delay-2 text-lg text-[#4A4A4A] max-w-lg leading-relaxed mb-8">
-                {t('hero.desc', locale)}
-              </p>
-              <div className="animate-in delay-3 flex flex-wrap items-center gap-3">
-                <a href={DOWNLOAD_URL} className="inline-flex items-center gap-2.5 bg-[#1A1A1A] text-white px-7 py-3.5 rounded-xl font-semibold text-[15px] hover:bg-gray-800 transition shadow-lg shadow-black/10">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" />
-                  </svg>
-                  {t('hero.downloadBtn', locale)}
-                </a>
-                <a href="#pricing" className="text-[15px] text-[#8A8A8A] hover:text-[#7C3AED] font-medium transition px-4 py-3.5">
-                  {t('hero.seePlans', locale)}
-                </a>
-              </div>
-              <p className="animate-in delay-4 text-[11px] text-[#8A8A8A] mt-4 tracking-wide">
+          <div className="text-center pt-16 lg:pt-24 pb-12">
+            <div className="animate-in">
+              <span className="inline-block bg-[#7C3AED]/8 text-[#7C3AED] text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-full mb-6 border border-[#7C3AED]/15">
+                {t('hero.badge', locale)}
+              </span>
+            </div>
+            <h1 className="animate-in delay-1 text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold leading-[1.05] tracking-tight mb-6" style={{ fontFamily: 'Bricolage Grotesque' }}>
+              {t('hero.title1', locale)}<br />
+              <span className="bg-gradient-to-r from-[#7C3AED] to-[#FF6B6B] bg-clip-text text-transparent">
+                {t('hero.title2', locale)}
+              </span>
+            </h1>
+            <p className="animate-in delay-2 text-lg text-[#4A4A4A] max-w-lg leading-relaxed mb-8 mx-auto">
+              {t('hero.desc', locale)}
+            </p>
+            <div className="animate-in delay-3 flex flex-wrap items-center justify-center gap-3">
+              <a href={DOWNLOAD_URL} className="inline-flex items-center gap-2.5 bg-[#1A1A1A] text-white px-7 py-3.5 rounded-xl font-semibold text-[15px] hover:bg-gray-800 transition shadow-lg shadow-black/10">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" />
+                </svg>
+                {t('hero.downloadBtn', locale)}
+              </a>
+              <a href="#pricing" className="text-[15px] text-[#8A8A8A] hover:text-[#7C3AED] font-medium transition px-4 py-3.5">
+                {t('hero.seePlans', locale)}
+              </a>
+            </div>
+            <div className="animate-in delay-4 flex flex-col items-center gap-3 mt-4">
+              <p className="text-[11px] text-[#8A8A8A] tracking-wide">
                 {t('hero.note', locale)}
               </p>
-            </div>
-            <div className="lg:col-span-2 flex flex-col items-center lg:items-end gap-5 animate-in delay-3">
-              <HeroTico locale={locale} />
               <ActiveUsersCounter locale={locale} />
             </div>
+          </div>
+
+          {/* Demo Video */}
+          <div className="animate-in delay-4 relative max-w-4xl mx-auto mb-16">
+            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-[#7C3AED]/15 to-[#A78BFA]/15 blur-2xl" />
+            <video
+              className="relative w-full rounded-2xl shadow-[0_20px_80px_rgba(124,58,237,0.2)] border border-gray-200/50"
+              src="https://tzpwebrpnqqygzpqxznb.supabase.co/storage/v1/object/public/public-assets/TicoPresentation.mp4"
+              controls
+              muted
+              autoPlay
+              playsInline
+              loop
+            />
           </div>
         </div>
       </section>

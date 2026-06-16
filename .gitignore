@@ -9,3 +9,4 @@ node_modules/
 publish/
 output/
 .wrangler/
+*.mp4
