@@ -332,13 +332,14 @@ export default function Home() {
             <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-[#7C3AED]/15 to-[#A78BFA]/15 blur-2xl" />
             <video
               className="relative w-full rounded-2xl shadow-[0_20px_80px_rgba(124,58,237,0.2)] border border-gray-200/50"
-              src="https://tzpwebrpnqqygzpqxznb.supabase.co/storage/v1/object/public/public-assets/TicoPresentation.mp4"
               controls
               muted
               autoPlay
               playsInline
               loop
-            />
+            >
+              <source src="https://tzpwebrpnqqygzpqxznb.supabase.co/storage/v1/object/public/public-assets/TicoPresentation.mp4" type="video/mp4" />
+            </video>
           </div>
         </div>
       </section>
