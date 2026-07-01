@@ -26,6 +26,7 @@ public partial class SettingsWindow : Window
     public event Action? LogoutRequested;
     public event Action<bool>? ChatHistoryVisibilityChanged;
     public event Action<string>? HotkeyChanged;
+    public event Action<string>? IconStyleChanged;
 
     public SettingsWindow(AppSettings settings, Session session, IProxyClient proxy)
     {
@@ -84,6 +85,9 @@ public partial class SettingsWindow : Window
         HotkeyButton.Content = _settings.HotkeyCombo;
         ModelLabel.Text = S.Model;
         VoiceLabel.Text = S.Voice;
+        AppearanceLabel.Text = S.Appearance;
+        BtnStyleDefault.Content = S.StyleDefault;
+        BtnStyleCursor.Content = S.StyleCursor;
         ShowTicoLabel.Text = S.ShowTico;
         ChatHistoryLabel.Text = S.ChatHistory;
     }
@@ -113,6 +117,7 @@ public partial class SettingsWindow : Window
     private void LoadSettings()
     {
         UpdateModelButtons(_settings.ClaudeModel);
+        UpdateStyleButtons(_settings.IconStyle);
 
         foreach (ComboBoxItem item in VoiceCombo.Items)
         {
@@ -245,6 +250,43 @@ public partial class SettingsWindow : Window
         UpdateModelButtons(_settings.ClaudeModel);
         _settings.SaveTo(AppSettings.DefaultPath);
         ModelChanged?.Invoke(_settings.ClaudeModel);
+    }
+
+    // --- Appearance ---
+
+    private void UpdateStyleButtons(string style)
+    {
+        bool isDefault = style != "cursor";
+
+        BtnStyleDefault.Foreground = new WpfSolidBrush(isDefault
+            ? WpfColor.FromRgb(236, 238, 237)
+            : WpfColor.FromRgb(107, 115, 111));
+        BtnStyleDefault.Background = isDefault
+            ? new WpfSolidBrush(WpfColor.FromArgb(26, 255, 255, 255))
+            : WpfBrushes.Transparent;
+
+        BtnStyleCursor.Foreground = new WpfSolidBrush(!isDefault
+            ? WpfColor.FromRgb(236, 238, 237)
+            : WpfColor.FromRgb(107, 115, 111));
+        BtnStyleCursor.Background = !isDefault
+            ? new WpfSolidBrush(WpfColor.FromArgb(26, 255, 255, 255))
+            : WpfBrushes.Transparent;
+    }
+
+    private void OnSelectStyleDefault(object sender, RoutedEventArgs e)
+    {
+        _settings.IconStyle = "default";
+        UpdateStyleButtons("default");
+        _settings.SaveTo(AppSettings.DefaultPath);
+        IconStyleChanged?.Invoke("default");
+    }
+
+    private void OnSelectStyleCursor(object sender, RoutedEventArgs e)
+    {
+        _settings.IconStyle = "cursor";
+        UpdateStyleButtons("cursor");
+        _settings.SaveTo(AppSettings.DefaultPath);
+        IconStyleChanged?.Invoke("cursor");
     }
 
     // --- Toggles ---

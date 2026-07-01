@@ -62,6 +62,24 @@
         <!-- Right eye -->
         <Ellipse x:Name="RightEye" Width="5" Height="5" Fill="White"/>
 
+        <!-- Cursor-style pointer (alternative appearance, hidden by default) -->
+        <Path x:Name="CursorPointer" Visibility="Collapsed"
+              Data="M 0,0 L 16,9 L 0,18 Z"
+              StrokeThickness="0">
+            <Path.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.5">
+                    <GradientStop x:Name="CursorGradStart" Color="#7C3AED" Offset="0"/>
+                    <GradientStop x:Name="CursorGradEnd" Color="#A855F7" Offset="1"/>
+                </LinearGradientBrush>
+            </Path.Fill>
+            <Path.Effect>
+                <DropShadowEffect x:Name="CursorShadow" BlurRadius="16" ShadowDepth="0" Opacity="0.5" Color="#7C3AED"/>
+            </Path.Effect>
+            <Path.RenderTransform>
+                <ScaleTransform x:Name="CursorScale" CenterX="8" CenterY="9" ScaleX="1" ScaleY="1"/>
+            </Path.RenderTransform>
+        </Path>
+
         <!-- Speech bubble -->
         <Border x:Name="SpeechBubble" Visibility="Collapsed"
                 Background="#7C3AED" CornerRadius="6" Padding="8,4">

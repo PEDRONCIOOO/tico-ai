@@ -19,6 +19,9 @@ public static class Strings
     public static string HotkeyTip => IsPt ? "pressione e segure {0} para falar com o tico" : "press and hold {0} to talk to tico";
     public static string Model => IsPt ? "Modelo" : "Model";
     public static string Voice => IsPt ? "Voz" : "Voice";
+    public static string Appearance => IsPt ? "Aparência" : "Appearance";
+    public static string StyleDefault => IsPt ? "Bolinha" : "Blob";
+    public static string StyleCursor => IsPt ? "Ponteiro" : "Pointer";
     public static string ShowTico => IsPt ? "Mostrar Tico" : "Show Tico";
     public static string ChatHistory => IsPt ? "Histórico de chat" : "Chat history";
     public static string Hotkey => IsPt ? "Tecla" : "Hotkey";

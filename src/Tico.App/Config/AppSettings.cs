@@ -19,6 +19,7 @@ public class AppSettings
     public string OmniParserUrl { get; set; } = "";
     public string OmniParserApiKey { get; set; } = "";
     public bool ChatHistoryEnabled { get; set; } = true;
+    public string IconStyle { get; set; } = "default";
 
     // Supabase project — anon key is public-by-design (embedded in every web client).
     [JsonIgnore] public string SupabaseUrl => HardcodedSupabaseUrl;

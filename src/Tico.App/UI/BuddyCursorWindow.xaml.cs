@@ -78,6 +78,9 @@ public partial class BuddyCursorWindow : Window
     // Update notification
     private string? _updateUrl;
 
+    // Icon style
+    private bool _isCursorStyle;
+
     // State
     private CompanionState _currentState = CompanionState.Idle;
     private DateTime _lastFrameTime;
@@ -250,11 +253,18 @@ public partial class BuddyCursorWindow : Window
 
         // Scale pulse: sin(progress * pi) -> 1.0 to 1.3 at midpoint
         double scale = 1.0 + 0.3 * Math.Sin(_flightProgress * Math.PI);
-        BodyScale.ScaleX = scale;
-        BodyScale.ScaleY = scale;
-
-        // Expand glow during flight
-        BodyShadow.BlurRadius = 16 + (scale - 1.0) * 40;
+        if (_isCursorStyle)
+        {
+            CursorScale.ScaleX = scale;
+            CursorScale.ScaleY = scale;
+            CursorShadow.BlurRadius = 16 + (scale - 1.0) * 40;
+        }
+        else
+        {
+            BodyScale.ScaleX = scale;
+            BodyScale.ScaleY = scale;
+            BodyShadow.BlurRadius = 16 + (scale - 1.0) * 40;
+        }
     }
 
     public void FollowCursor()
@@ -265,6 +275,9 @@ public partial class BuddyCursorWindow : Window
         BodyScale.ScaleX = 1;
         BodyScale.ScaleY = 1;
         BodyShadow.BlurRadius = 16;
+        CursorScale.ScaleX = 1;
+        CursorScale.ScaleY = 1;
+        CursorShadow.BlurRadius = 16;
         HideSpeechBubble();
     }
 
@@ -313,21 +326,38 @@ public partial class BuddyCursorWindow : Window
         double rx = _buddyX - Left;
         double ry = _buddyY - Top;
 
-        // Glow (centered, 56x56)
-        Canvas.SetLeft(GlowEllipse, rx - 28);
-        Canvas.SetTop(GlowEllipse, ry - 28);
+        if (_isCursorStyle)
+        {
+            // Triangle pointer: centered on buddy position
+            Canvas.SetLeft(CursorPointer, rx - 8);
+            Canvas.SetTop(CursorPointer, ry - 9);
 
-        // Body (centered, 36x36)
-        Canvas.SetLeft(BuddyBody, rx - 18);
-        Canvas.SetTop(BuddyBody, ry - 18);
+            // No separate glow — the Path's DropShadowEffect is enough
+            GlowEllipse.Visibility = Visibility.Collapsed;
 
-        // Waveform (to the right of buddy)
-        Canvas.SetLeft(WaveformCanvas, rx + 22);
-        Canvas.SetTop(WaveformCanvas, ry - 10);
+            // Waveform and spinner to the right of pointer
+            Canvas.SetLeft(WaveformCanvas, rx + 14);
+            Canvas.SetTop(WaveformCanvas, ry - 10);
+            Canvas.SetLeft(SpinnerCanvas, rx + 14);
+            Canvas.SetTop(SpinnerCanvas, ry - 9);
+        }
+        else
+        {
+            // Glow (centered, 50x50)
+            GlowEllipse.Visibility = Visibility.Visible;
+            Canvas.SetLeft(GlowEllipse, rx - 28);
+            Canvas.SetTop(GlowEllipse, ry - 28);
 
-        // Spinner (centered on buddy)
-        Canvas.SetLeft(SpinnerCanvas, rx - 9);
-        Canvas.SetTop(SpinnerCanvas, ry - 9);
+            // Body (centered, 36x36)
+            Canvas.SetLeft(BuddyBody, rx - 18);
+            Canvas.SetTop(BuddyBody, ry - 18);
+
+            // Waveform (to the right of buddy)
+            Canvas.SetLeft(WaveformCanvas, rx + 22);
+            Canvas.SetTop(WaveformCanvas, ry - 10);
+            Canvas.SetLeft(SpinnerCanvas, rx - 9);
+            Canvas.SetTop(SpinnerCanvas, ry - 9);
+        }
 
         // Speech bubble (offset right and below)
         Canvas.SetLeft(SpeechBubble, rx + 10);
@@ -336,6 +366,8 @@ public partial class BuddyCursorWindow : Window
 
     private void UpdateEyes()
     {
+        if (_isCursorStyle) return;
+
         double rx = _buddyX - Left;
         double ry = _buddyY - Top;
 
@@ -469,6 +501,11 @@ public partial class BuddyCursorWindow : Window
         GlowColor.Color = glowColor;
         BodyShadow.Color = glowColor;
 
+        // Cursor style colors
+        CursorGradStart.Color = startColor;
+        CursorGradEnd.Color = endColor;
+        CursorShadow.Color = glowColor;
+
         // Update bar colors for waveform
         foreach (var bar in _bars)
             bar.Fill = new SolidColorBrush(startColor);
@@ -525,6 +562,21 @@ public partial class BuddyCursorWindow : Window
             BeginAnimation(OpacityProperty, fadeOut);
         };
         timer.Start();
+    }
+
+    // --- Icon Style ---
+
+    public void SetIconStyle(string style)
+    {
+        _isCursorStyle = style == "cursor";
+
+        BuddyBody.Visibility = _isCursorStyle ? Visibility.Collapsed : Visibility.Visible;
+        LeftEye.Visibility = _isCursorStyle ? Visibility.Collapsed : Visibility.Visible;
+        RightEye.Visibility = _isCursorStyle ? Visibility.Collapsed : Visibility.Visible;
+        CursorPointer.Visibility = _isCursorStyle ? Visibility.Visible : Visibility.Collapsed;
+
+        // Sync colors to current state
+        UpdateState(_currentState);
     }
 
     public void ShowBuddy() => Show();

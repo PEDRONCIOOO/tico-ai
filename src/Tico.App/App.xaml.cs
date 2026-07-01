@@ -80,6 +80,7 @@ public partial class App : Application
         _tray = new TrayIconManager();
         _overlay = new OverlayWindow();
         _buddy = new BuddyCursorWindow();
+        _buddy.SetIconStyle(_settings.IconStyle);
         _buddy.ShowBuddy();
         _buddy.ShowWelcomeMessage();
 
@@ -198,6 +199,10 @@ public partial class App : Application
         _settingsWindow.WindowState = WindowState.Minimized;
         _settingsWindow.Show();
 
+        _settingsWindow.IconStyleChanged += style =>
+        {
+            _buddy?.SetIconStyle(style);
+        };
         _settingsWindow.BuddyVisibilityChanged += visible =>
         {
             _buddy?.SetTransientMode(!visible);
