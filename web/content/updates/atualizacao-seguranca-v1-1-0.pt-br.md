@@ -11,9 +11,7 @@ acabamos de lancar a versao 1.1.0 do tico, focada em seguranca e estabilidade. e
 
 - **atualizacoes mais seguras** — o tico agora so aceita downloads de enderecos verificados, evitando qualquer risco de redirecionamento.
 - **configuracoes protegidas** — dados sensiveis como enderecos de servidor nao podem mais ser alterados por arquivos externos.
-- **logout de verdade** — ao sair da conta, a sessao e encerrada tanto no app quanto no servidor.
 - **menos dados em memoria** — screenshots antigos sao removidos do historico antes de enviar, economizando recursos e protegendo sua privacidade.
-- **logs mais limpos** — informacoes sensiveis nao aparecem mais nos logs de depuracao.
 - **gravacao limitada** — o audio agora tem um limite de 60 segundos para evitar gravacoes acidentais.
 - **captura de tela focada** — o tico agora captura apenas o monitor onde voce esta trabalhando, nao todos os monitores simultaneamente.
 

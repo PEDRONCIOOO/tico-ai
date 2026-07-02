@@ -11,9 +11,7 @@ we just released tico version 1.1.0, focused on security and stability. this upd
 
 - **safer updates** — tico now only accepts downloads from verified addresses, avoiding any redirect risk.
 - **protected settings** — sensitive data like server addresses can no longer be changed by external files.
-- **real logout** — when you log out, the session is terminated both in the app and on the server.
 - **less data in memory** — old screenshots are removed from history before sending, saving resources and protecting your privacy.
-- **cleaner logs** — sensitive information no longer appears in debug logs.
 - **limited recording** — audio now has a 60-second limit to prevent accidental recordings.
 - **focused screen capture** — tico now captures only the monitor you are working on, not all monitors simultaneously.
 
