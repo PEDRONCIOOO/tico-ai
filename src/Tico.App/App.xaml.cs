@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Threading;
 using System.Windows;
+using NAudio.Wave;
 using Tico.App.Config;
 using Tico.App.Core;
 using Tico.App.Helpers;
@@ -71,6 +72,7 @@ public partial class App : Application
             ? new OmniParserClient(http, _settings)
             : null;
         var audio = new AudioCaptureService();
+        audio.DeviceNumber = ResolveDeviceNumber(_settings.MicrophoneDevice);
         var screen = new ScreenCaptureService();
 
         _manager = new CompanionManager(audio, screen, _proxy, _settings, omniParser);
@@ -203,6 +205,10 @@ public partial class App : Application
         {
             _buddy?.SetIconStyle(style);
         };
+        _settingsWindow.MicrophoneChanged += deviceNumber =>
+        {
+            audio.DeviceNumber = deviceNumber;
+        };
         _settingsWindow.BuddyVisibilityChanged += visible =>
         {
             _buddy?.SetTransientMode(!visible);
@@ -328,6 +334,17 @@ public partial class App : Application
 
         _sessionManager.SetSession(loginWindow.Result);
         return true;
+    }
+
+    private static int ResolveDeviceNumber(string deviceName)
+    {
+        if (string.IsNullOrEmpty(deviceName)) return 0;
+        for (int i = 0; i < WaveInEvent.DeviceCount; i++)
+        {
+            if (WaveInEvent.GetCapabilities(i).ProductName == deviceName)
+                return i;
+        }
+        return 0;
     }
 
     protected override void OnExit(ExitEventArgs e)

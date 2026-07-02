@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using NAudio.Wave;
 using Tico.App.Config;
 using Tico.App.Services;
 using WpfBrushes = System.Windows.Media.Brushes;
@@ -27,6 +28,7 @@ public partial class SettingsWindow : Window
     public event Action<bool>? ChatHistoryVisibilityChanged;
     public event Action<string>? HotkeyChanged;
     public event Action<string>? IconStyleChanged;
+    public event Action<int>? MicrophoneChanged;
 
     public SettingsWindow(AppSettings settings, Session session, IProxyClient proxy)
     {
@@ -85,6 +87,7 @@ public partial class SettingsWindow : Window
         HotkeyButton.Content = _settings.HotkeyCombo;
         ModelLabel.Text = S.Model;
         VoiceLabel.Text = S.Voice;
+        MicrophoneLabel.Text = S.Microphone;
         AppearanceLabel.Text = S.Appearance;
         BtnStyleDefault.Content = S.StyleDefault;
         BtnStyleCursor.Content = S.StyleCursor;
@@ -118,6 +121,7 @@ public partial class SettingsWindow : Window
     {
         UpdateModelButtons(_settings.ClaudeModel);
         UpdateStyleButtons(_settings.IconStyle);
+        LoadMicrophones();
 
         foreach (ComboBoxItem item in VoiceCombo.Items)
         {
@@ -250,6 +254,55 @@ public partial class SettingsWindow : Window
         UpdateModelButtons(_settings.ClaudeModel);
         _settings.SaveTo(AppSettings.DefaultPath);
         ModelChanged?.Invoke(_settings.ClaudeModel);
+    }
+
+    // --- Microphone ---
+
+    private void LoadMicrophones()
+    {
+        MicCombo.SelectionChanged -= OnMicChanged;
+        MicCombo.Items.Clear();
+
+        // "System default" option
+        MicCombo.Items.Add(new ComboBoxItem { Content = S.MicDefault, Tag = "" });
+
+        int selectedIndex = 0;
+        for (int i = 0; i < WaveInEvent.DeviceCount; i++)
+        {
+            var caps = WaveInEvent.GetCapabilities(i);
+            MicCombo.Items.Add(new ComboBoxItem { Content = caps.ProductName, Tag = caps.ProductName });
+            if (caps.ProductName == _settings.MicrophoneDevice)
+                selectedIndex = i + 1;
+        }
+
+        MicCombo.SelectedIndex = selectedIndex;
+        MicCombo.SelectionChanged += OnMicChanged;
+    }
+
+    private void OnMicChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!IsLoaded) return;
+        var selected = MicCombo.SelectedItem as ComboBoxItem;
+        var deviceName = selected?.Tag?.ToString() ?? "";
+
+        _settings.MicrophoneDevice = deviceName;
+        _settings.SaveTo(AppSettings.DefaultPath);
+
+        // Resolve device number
+        int deviceNumber = 0;
+        if (!string.IsNullOrEmpty(deviceName))
+        {
+            for (int i = 0; i < WaveInEvent.DeviceCount; i++)
+            {
+                if (WaveInEvent.GetCapabilities(i).ProductName == deviceName)
+                {
+                    deviceNumber = i;
+                    break;
+                }
+            }
+        }
+
+        MicrophoneChanged?.Invoke(deviceNumber);
     }
 
     // --- Appearance ---

@@ -15,11 +15,14 @@ public class AudioCaptureService : IAudioCaptureService, IDisposable
 
     public event Action<double>? AudioPowerChanged;
 
+    public int DeviceNumber { get; set; }
+
     public void StartRecording()
     {
         _buffer = new MemoryStream();
         _waveIn = new WaveInEvent
         {
+            DeviceNumber = DeviceNumber,
             WaveFormat = WhisperFormat,
             BufferMilliseconds = 50
         };

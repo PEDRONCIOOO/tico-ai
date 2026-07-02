@@ -170,6 +170,17 @@
                     </DockPanel>
                 </Border>
 
+                <!-- Microphone Card -->
+                <Border Style="{StaticResource CardBorder}">
+                    <DockPanel>
+                        <TextBlock x:Name="MicrophoneLabel" Style="{StaticResource LabelText}" DockPanel.Dock="Left"/>
+                        <ComboBox x:Name="MicCombo" DockPanel.Dock="Right" HorizontalAlignment="Right"
+                                  Width="170" Background="#0A0A0A" Foreground="#B0B0B0"
+                                  BorderBrush="#2A2A2A" FontSize="11"
+                                  SelectionChanged="OnMicChanged"/>
+                    </DockPanel>
+                </Border>
+
                 <!-- Appearance Card -->
                 <Border Style="{StaticResource CardBorder}">
                     <DockPanel>
