@@ -28,7 +28,7 @@ public static class Strings
     public static string ChatHistory => IsPt ? "Histórico de chat" : "Chat history";
     public static string Hotkey => IsPt ? "Tecla" : "Hotkey";
     public static string PressKey => IsPt ? "aperte uma tecla..." : "press a key...";
-    public static string AppVersion => "tico v1.0.0  ·  ticoai.app";
+    public static string AppVersion => "tico v1.2.0  ·  ticoai.app";
 
     // Tray
     public static string TrayReady => IsPt ? "Tico — Pronto" : "Tico — Ready";
