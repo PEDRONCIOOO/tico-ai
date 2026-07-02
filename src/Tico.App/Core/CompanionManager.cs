@@ -175,15 +175,36 @@ public class CompanionManager
 
         try
         {
-            // Transcribe + OmniParser in parallel
+            // Transcribe: run Whisper + Windows STT in parallel, use first valid result
             Log($"Speech available: {_speech?.IsAvailable}");
             Task<string> transcribeTask;
             if (_speech is { IsAvailable: true })
             {
-                var sttResult = await _speech.StopListeningAsync();
-                transcribeTask = string.IsNullOrWhiteSpace(sttResult)
-                    ? _proxy.TranscribeAsync(audioData, ct)
-                    : Task.FromResult(sttResult);
+                // Start Whisper immediately — don't wait for STT first
+                var whisperTask = _proxy.TranscribeAsync(audioData, ct);
+
+                string sttResult = "";
+                try
+                {
+                    sttResult = await _speech.StopListeningAsync();
+                }
+                catch (OperationCanceledException) { throw; }
+                catch (Exception ex)
+                {
+                    Log($"Windows STT failed: {ex.Message}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(sttResult))
+                {
+                    Log("Using Windows STT result (Whisper running in background)");
+                    transcribeTask = Task.FromResult(sttResult);
+                    _ = whisperTask.ContinueWith(_ => { }, TaskContinuationOptions.OnlyOnFaulted);
+                }
+                else
+                {
+                    Log("Windows STT empty — awaiting Whisper (already in flight)");
+                    transcribeTask = whisperTask;
+                }
             }
             else
             {

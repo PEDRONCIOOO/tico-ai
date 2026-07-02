@@ -518,13 +518,14 @@ public partial class BuddyCursorWindow : Window
         SpinnerCanvas.Visibility = state == CompanionState.Processing ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    public void ShowWelcomeMessage()
+    public void ShowWelcomeMessage(string? message = null)
     {
+        var text = message ?? "oi! eu sou o tico";
         var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.5) };
         timer.Tick += (_, _) =>
         {
             timer.Stop();
-            ShowSpeechBubble("oi! eu sou o tico");
+            ShowSpeechBubble(text);
         };
         timer.Start();
     }

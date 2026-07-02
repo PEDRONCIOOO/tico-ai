@@ -84,7 +84,16 @@ public partial class App : Application
         _buddy = new BuddyCursorWindow();
         _buddy.SetIconStyle(_settings.IconStyle);
         _buddy.ShowBuddy();
-        _buddy.ShowWelcomeMessage();
+
+        if (_settings.FirstRunCompleted)
+        {
+            var name = _sessionManager.Current?.Email.Split('@')[0];
+            _buddy.ShowWelcomeMessage($"oi, {name}!");
+        }
+        else
+        {
+            _buddy.ShowWelcomeMessage();
+        }
 
         // Chat history button + window
         if (_settings.ChatHistoryEnabled)
@@ -285,6 +294,13 @@ public partial class App : Application
             }
             catch { /* ignore warmup failures */ }
         });
+
+        // Mark first run as completed
+        if (!_settings.FirstRunCompleted)
+        {
+            _settings.FirstRunCompleted = true;
+            _settings.SaveTo(AppSettings.DefaultPath);
+        }
 
         // Update check — runs in background, notifies user if new version available
         _ = Task.Run(async () =>
