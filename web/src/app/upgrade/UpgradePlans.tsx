@@ -111,7 +111,7 @@ export function UpgradePlans({ currentTier, locale }: { currentTier: string; loc
               <div className="mb-1">
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-bold tracking-tight" style={{ fontFamily: 'Bricolage Grotesque, sans-serif' }}>
-                    {plan.priceBRL}
+                    {locale === 'en' && plan.priceUSD ? plan.priceUSD : plan.priceBRL}
                   </span>
                   <span className={`text-sm ${plan.highlight ? 'text-gray-400' : 'text-[#8A8A8A]'}`}>
                     {t(plan.periodKey, locale)}
@@ -119,7 +119,7 @@ export function UpgradePlans({ currentTier, locale }: { currentTier: string; loc
                 </div>
                 {plan.priceUSD && (
                   <p className={`text-sm mt-0.5 ${plan.highlight ? 'text-gray-400' : 'text-[#8A8A8A]'}`}>
-                    {plan.priceUSD}{t(plan.periodKey, locale)}
+                    {locale === 'en' ? plan.priceBRL : plan.priceUSD}{t(plan.periodKey, locale)}
                   </p>
                 )}
               </div>

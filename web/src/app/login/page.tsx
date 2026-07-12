@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { t, type Locale } from '@/lib/i18n'
 
 export default function LoginPage() {
   return (
@@ -18,6 +19,7 @@ function LoginContent() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [locale, setLocale] = useState<Locale>('pt-br')
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect')
@@ -25,6 +27,11 @@ function LoginContent() {
   // Eye tracking — same logic as HeroTico on landing page
   const [eyeOffset, setEyeOffset] = useState({ x: 0, y: 0 })
   const ticoRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const cookieLocale = document.cookie.match(/locale=(pt-br|en)/)?.[1] as Locale | undefined
+    setLocale(cookieLocale ?? (navigator.language.startsWith('pt') ? 'pt-br' : 'en'))
+  }, [])
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -52,7 +59,7 @@ function LoginContent() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      setError(error.message === 'Invalid login credentials' ? 'email ou senha incorretos' : error.message)
+      setError(error.message === 'Invalid login credentials' ? t('login.invalidCredentials', locale) : error.message)
       setLoading(false)
       return
     }
@@ -79,23 +86,23 @@ function LoginContent() {
 
         {/* Card */}
         <div className="bg-white rounded-2xl border border-gray-200/80 p-8 shadow-sm">
-          <h1 className="text-xl font-bold mb-1" style={{ fontFamily: 'Bricolage Grotesque, sans-serif' }}>entrar</h1>
-          <p className="text-sm text-[#8A8A8A] mb-6">acesse sua conta do tico</p>
+          <h1 className="text-xl font-bold mb-1" style={{ fontFamily: 'Bricolage Grotesque, sans-serif' }}>{t('login.title', locale)}</h1>
+          <p className="text-sm text-[#8A8A8A] mb-6">{t('login.subtitle', locale)}</p>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-[#8A8A8A] uppercase tracking-wider block mb-1.5">email</label>
+              <label className="text-xs font-semibold text-[#8A8A8A] uppercase tracking-wider block mb-1.5">{t('login.email', locale)}</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="seu@email.com"
+                placeholder={t('login.emailPlaceholder', locale)}
                 required
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED]/20 transition bg-[#FAFAF8]"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-[#8A8A8A] uppercase tracking-wider block mb-1.5">senha</label>
+              <label className="text-xs font-semibold text-[#8A8A8A] uppercase tracking-wider block mb-1.5">{t('login.password', locale)}</label>
               <input
                 type="password"
                 value={password}
@@ -115,12 +122,12 @@ function LoginContent() {
               disabled={loading}
               className="w-full bg-[#1A1A1A] text-white py-3 rounded-xl text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50"
             >
-              {loading ? 'entrando...' : 'entrar'}
+              {loading ? t('login.submitting', locale) : t('login.submit', locale)}
             </button>
           </form>
 
           <p className="text-center text-sm text-[#8A8A8A] mt-6">
-            não tem conta? <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'} className="text-[#7C3AED] font-medium hover:underline">criar conta</Link>
+            {t('login.noAccount', locale)} <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'} className="text-[#7C3AED] font-medium hover:underline">{t('login.createAccount', locale)}</Link>
           </p>
         </div>
       </div>

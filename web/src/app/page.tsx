@@ -105,8 +105,8 @@ function HeroTico({ locale }: { locale: Locale }) {
 }
 
 // ─── Pricing Card ────────────────────────────────────────────────
-function PricingCard({ tier, price, period, features, highlight, cta, href }: {
-  tier: string; price: string; period: string; features: string[]; highlight?: boolean; cta: string; href: string
+function PricingCard({ tier, price, period, features, highlight, cta, href, popularLabel }: {
+  tier: string; price: string; period: string; features: string[]; highlight?: boolean; cta: string; href: string; popularLabel?: string
 }) {
   return (
     <div className={`relative group rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 ${
@@ -114,9 +114,9 @@ function PricingCard({ tier, price, period, features, highlight, cta, href }: {
         ? 'bg-[#1A1A1A] text-white shadow-[0_8px_40px_rgba(124,58,237,0.25)]'
         : 'bg-white border border-gray-200/80 hover:shadow-xl'
     }`}>
-      {highlight && (
+      {highlight && popularLabel && (
         <div className="absolute -top-3 left-6 bg-[#FF6B6B] text-white text-[11px] font-bold tracking-wide uppercase px-3 py-1 rounded-full">
-          popular
+          {popularLabel}
         </div>
       )}
       <p className={`text-xs font-bold tracking-widest uppercase mb-4 ${highlight ? 'text-purple-300' : 'text-[#8A8A8A]'}`}>
@@ -440,13 +440,13 @@ export default function Home() {
             <p className="text-[#8A8A8A] text-lg">{t('pricing.subtitle', locale)}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
-            <PricingCard tier={t('plan.free', locale)} price="R$0" period={t('plan.forever', locale)}
+            <PricingCard tier={t('plan.free', locale)} price={locale === 'en' ? '$0' : 'R$0'} period={t('plan.forever', locale)}
               features={[t('feat.10day', locale), t('feat.voice', locale), t('feat.cursor', locale), t('feat.sonnet', locale)]}
               cta={t('pricing.cta.free', locale)} href={DOWNLOAD_URL} />
-            <PricingCard tier={t('plan.pro', locale)} price="R$45" period={t('plan.perMonth', locale)} highlight
+            <PricingCard tier={t('plan.pro', locale)} price={locale === 'en' ? '$9.99' : 'R$45'} period={t('plan.perMonth', locale)} highlight popularLabel={t('btn.popular', locale)}
               features={[t('feat.500month', locale), t('feat.voice', locale), t('feat.cursorPointing', locale), t('feat.sonnet', locale), t('feat.priority', locale)]}
               cta={t('pricing.cta.pro', locale)} href={subscribeHref} />
-            <PricingCard tier={t('plan.unlimited', locale)} price="R$99,90" period={t('plan.perMonth', locale)}
+            <PricingCard tier={t('plan.unlimited', locale)} price={locale === 'en' ? '$19.99' : 'R$99,90'} period={t('plan.perMonth', locale)}
               features={[t('feat.unlimited', locale), t('feat.voice', locale), t('feat.cursorPointing', locale), t('feat.opus', locale), t('feat.priority', locale), t('feat.earlyAccess', locale)]}
               cta={t('pricing.cta.unlimited', locale)} href={subscribeHref} />
           </div>

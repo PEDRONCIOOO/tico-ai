@@ -182,7 +182,7 @@ function DashboardContent() {
             <button
               onClick={() => setShowUpgradeBanner(false)}
               className="text-[#065F46]/60 hover:text-[#065F46] text-lg leading-none"
-              aria-label="fechar"
+              aria-label={t('dash.close', locale)}
             >
               ×
             </button>
@@ -294,7 +294,7 @@ function DashboardContent() {
                 <h2 className="text-sm font-bold text-[#8A8A8A] uppercase tracking-widest mb-4">{t('dash.nextPayment', locale)}</h2>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold" style={{ fontFamily: 'Bricolage Grotesque, sans-serif' }}>
-                    {new Date(profile.current_period_end).toLocaleDateString('pt-BR', {
+                    {new Date(profile.current_period_end).toLocaleDateString(locale === 'en' ? 'en-US' : 'pt-BR', {
                       day: 'numeric', month: 'long', year: 'numeric'
                     })}
                   </span>
@@ -319,12 +319,12 @@ function DashboardContent() {
                     <div key={p.id} className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium">
-                          {new Date(p.paid_at).toLocaleDateString('pt-BR', {
+                          {new Date(p.paid_at).toLocaleDateString(locale === 'en' ? 'en-US' : 'pt-BR', {
                             day: 'numeric', month: 'short', year: 'numeric'
                           })}
                         </p>
                         <p className="text-xs text-[#8A8A8A]">
-                          {p.plan === 'pro' ? 'Tico Pro' : p.plan === 'unlimited' ? 'Tico Ilimitado' : p.plan}
+                          {p.plan === 'pro' ? t('dash.planPro', locale) : p.plan === 'unlimited' ? t('dash.planUnlimited', locale) : p.plan}
                         </p>
                       </div>
                       <span className="text-sm font-semibold text-[#1A1A1A]">

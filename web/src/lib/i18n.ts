@@ -248,6 +248,52 @@ const dict: Record<string, Record<Locale, string>> = {
   'faq.5.a': { 'pt-br': 'nao. screenshots sao capturados apenas quando voce aperta a tecla, processados instantaneamente e descartados.', en: 'no. screenshots are captured only when you press the hotkey, processed instantly, and discarded.' },
   'faq.6.q': { 'pt-br': 'posso usar em portugues e ingles?', en: 'can I use it in Portuguese and English?' },
   'faq.6.a': { 'pt-br': 'sim, o tico detecta seu idioma automaticamente e responde na mesma lingua.', en: 'yes, tico detects your language automatically and responds in the same language.' },
+
+  // Login page
+  'login.title': { 'pt-br': 'entrar', en: 'log in' },
+  'login.subtitle': { 'pt-br': 'acesse sua conta do tico', en: 'access your tico account' },
+  'login.email': { 'pt-br': 'email', en: 'email' },
+  'login.emailPlaceholder': { 'pt-br': 'seu@email.com', en: 'you@email.com' },
+  'login.password': { 'pt-br': 'senha', en: 'password' },
+  'login.submit': { 'pt-br': 'entrar', en: 'log in' },
+  'login.submitting': { 'pt-br': 'entrando...', en: 'logging in...' },
+  'login.invalidCredentials': { 'pt-br': 'email ou senha incorretos', en: 'invalid email or password' },
+  'login.noAccount': { 'pt-br': 'não tem conta?', en: "don't have an account?" },
+  'login.createAccount': { 'pt-br': 'criar conta', en: 'create account' },
+
+  // Register page
+  'register.title': { 'pt-br': 'criar conta', en: 'create account' },
+  'register.subtitle': { 'pt-br': 'comece a usar o tico gratuitamente', en: 'start using tico for free' },
+  'register.name': { 'pt-br': 'nome', en: 'name' },
+  'register.namePlaceholder': { 'pt-br': 'seu nome', en: 'your name' },
+  'register.email': { 'pt-br': 'email', en: 'email' },
+  'register.emailPlaceholder': { 'pt-br': 'seu@email.com', en: 'you@email.com' },
+  'register.password': { 'pt-br': 'senha', en: 'password' },
+  'register.passwordPlaceholder': { 'pt-br': 'minimo 8 caracteres', en: 'min 8 characters' },
+  'register.confirmPassword': { 'pt-br': 'confirmar senha', en: 'confirm password' },
+  'register.confirmPlaceholder': { 'pt-br': 'repita a senha', en: 'repeat password' },
+  'register.submit': { 'pt-br': 'criar conta gratis', en: 'create free account' },
+  'register.submitting': { 'pt-br': 'criando...', en: 'creating...' },
+  'register.hasAccount': { 'pt-br': 'ja tem conta?', en: 'already have an account?' },
+  'register.login': { 'pt-br': 'entrar', en: 'log in' },
+  'register.passwordMin': { 'pt-br': 'a senha precisa ter pelo menos 8 caracteres', en: 'password must be at least 8 characters' },
+  'register.passwordMismatch': { 'pt-br': 'as senhas nao coincidem', en: 'passwords do not match' },
+
+  // Verify email screen
+  'verify.title': { 'pt-br': 'verifique seu e-mail', en: 'verify your email' },
+  'verify.desc': { 'pt-br': 'voce precisa verificar seu e-mail para utilizar o tico.', en: 'you need to verify your email to use tico.' },
+  'verify.sentTo': { 'pt-br': 'enviamos para:', en: 'we sent it to:' },
+  'verify.resent': { 'pt-br': 'e-mail reenviado com sucesso', en: 'email resent successfully' },
+  'verify.resending': { 'pt-br': 'reenviando...', en: 'resending...' },
+  'verify.resendIn': { 'pt-br': 'reenviar e-mail em', en: 'resend email in' },
+  'verify.resendBtn': { 'pt-br': 'reenviar e-mail de verificacao', en: 'resend verification email' },
+  'verify.checkSpam': { 'pt-br': 'verifique tambem sua caixa de spam', en: 'also check your spam folder' },
+  'verify.backToLogin': { 'pt-br': 'voltar para o login', en: 'back to login' },
+
+  // Dashboard extras
+  'dash.planUnlimited': { 'pt-br': 'Tico Ilimitado', en: 'Tico Unlimited' },
+  'dash.planPro': { 'pt-br': 'Tico Pro', en: 'Tico Pro' },
+  'dash.close': { 'pt-br': 'fechar', en: 'close' },
 }
 
 export function t(key: string, locale: Locale): string {
