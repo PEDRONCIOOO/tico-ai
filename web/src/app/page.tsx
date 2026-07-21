@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { t, type Locale } from '@/lib/i18n'
 import { LocaleToggle } from '@/components/LocaleToggle'
@@ -61,6 +61,175 @@ function TicoBuddy() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ─── System Clock (live clock for nav tray) ─────────────────────
+function SystemClock() {
+  const [time, setTime] = useState('')
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date()
+      setTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
+    }
+    tick()
+    const id = setInterval(tick, 30_000)
+    return () => clearInterval(id)
+  }, [])
+  return <span>{time}</span>
+}
+
+// ─── Windows Window Frame ────────────────────────────────────────
+function WinFrame({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`win-frame rounded-lg border border-gray-300/80 bg-white shadow-[0_8px_40px_rgba(0,0,0,0.08)] overflow-hidden ${className}`}>
+      {/* Title bar */}
+      <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-[#F3F2EF] to-[#E8E6E1] border-b border-gray-200/80">
+        <div className="flex items-center gap-2">
+          <svg className="w-3.5 h-3.5 text-[#7C3AED]" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" /></svg>
+          <span className="text-[11px] text-[#8A8A8A] font-mono truncate">{title}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-gray-300/80 flex items-center justify-center">
+            <span className="text-[8px] text-gray-500 leading-none">─</span>
+          </div>
+          <div className="w-3 h-3 rounded-sm bg-gray-300/80 flex items-center justify-center">
+            <span className="text-[8px] text-gray-500 leading-none">□</span>
+          </div>
+          <div className="w-3 h-3 rounded-sm bg-red-400/80 flex items-center justify-center">
+            <span className="text-[8px] text-white leading-none">×</span>
+          </div>
+        </div>
+      </div>
+      {/* Content */}
+      {children}
+    </div>
+  )
+}
+
+// ─── Draggable Element ───────────────────────────────────────────
+function Draggable({ children, className = '', style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const dragState = useRef({ dragging: false, startX: 0, startY: 0, origX: 0, origY: 0 })
+  const [offset, setOffset] = useState({ x: 0, y: 0 })
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    e.preventDefault()
+    const el = ref.current
+    if (!el) return
+    el.setPointerCapture(e.pointerId)
+    dragState.current = { dragging: true, startX: e.clientX, startY: e.clientY, origX: offset.x, origY: offset.y }
+  }, [offset])
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragState.current.dragging) return
+    const dx = e.clientX - dragState.current.startX
+    const dy = e.clientY - dragState.current.startY
+    setOffset({ x: dragState.current.origX + dx, y: dragState.current.origY + dy })
+  }, [])
+
+  const onPointerUp = useCallback(() => {
+    dragState.current.dragging = false
+  }, [])
+
+  return (
+    <div
+      ref={ref}
+      className={`absolute touch-none select-none cursor-grab active:cursor-grabbing z-10 transition-shadow hover:shadow-lg ${className}`}
+      style={{ ...style, transform: `translate(${offset.x}px, ${offset.y}px)` }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+    >
+      {children}
+    </div>
+  )
+}
+
+// ─── Hero Floating Elements (Windows desktop items) ──────────────
+function HeroFloatingElements() {
+  return (
+    <div className="hidden lg:block absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Recycle Bin — top left */}
+      <Draggable className="pointer-events-auto" style={{ top: '15%', left: '5%' }}>
+        <div className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-white/50 transition">
+          <svg className="w-10 h-10" viewBox="0 0 48 48" fill="none">
+            <rect x="12" y="14" width="24" height="28" rx="2" fill="#E8E6E1" stroke="#B0ADA8" strokeWidth="1.5" />
+            <rect x="10" y="10" width="28" height="5" rx="1.5" fill="#B0ADA8" />
+            <rect x="20" y="7" width="8" height="4" rx="1" fill="#B0ADA8" />
+            <line x1="19" y1="20" x2="19" y2="36" stroke="#B0ADA8" strokeWidth="1.5" strokeLinecap="round" />
+            <line x1="24" y1="20" x2="24" y2="36" stroke="#B0ADA8" strokeWidth="1.5" strokeLinecap="round" />
+            <line x1="29" y1="20" x2="29" y2="36" stroke="#B0ADA8" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <span className="text-[10px] text-[#8A8A8A] font-mono">lixeira</span>
+        </div>
+      </Draggable>
+
+      {/* Folder — top right */}
+      <Draggable className="pointer-events-auto" style={{ top: '12%', right: '6%' }}>
+        <div className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-white/50 transition">
+          <svg className="w-10 h-10" viewBox="0 0 48 48" fill="none">
+            <path d="M6 14h14l4-4h18a2 2 0 012 2v26a2 2 0 01-2 2H6a2 2 0 01-2-2V16a2 2 0 012-2z" fill="#FBBF24" stroke="#D4A017" strokeWidth="1.2" />
+            <path d="M4 18h40v20a2 2 0 01-2 2H6a2 2 0 01-2-2V18z" fill="#FCD34D" />
+          </svg>
+          <span className="text-[10px] text-[#8A8A8A] font-mono">meus arquivos</span>
+        </div>
+      </Draggable>
+
+      {/* Kaomoji ^ω^ — left side */}
+      <Draggable className="pointer-events-auto" style={{ top: '50%', left: '3%' }}>
+        <span className="text-2xl font-mono text-[#C4C4C4] hover:text-[#7C3AED] transition-colors select-none">{'^ω^'}</span>
+      </Draggable>
+
+      {/* "olá meu nome é" sticker — right side */}
+      <Draggable className="pointer-events-auto" style={{ top: '45%', right: '4%' }}>
+        <div className="w-[140px] rotate-3">
+          <div className="bg-white rounded-lg border-2 border-red-400 shadow-md overflow-hidden">
+            <div className="bg-red-400 px-3 py-1">
+              <p className="text-[8px] text-white font-bold uppercase tracking-wider text-center">ola, meu nome e</p>
+            </div>
+            <div className="px-3 py-2 text-center">
+              <p className="text-xl font-bold text-[#7C3AED]" style={{ fontFamily: 'Bricolage Grotesque' }}>tico</p>
+            </div>
+          </div>
+        </div>
+      </Draggable>
+
+      {/* Kaomoji (•‿•) — bottom left */}
+      <Draggable className="pointer-events-auto" style={{ bottom: '25%', left: '8%' }}>
+        <span className="text-xl font-mono text-[#C4C4C4] hover:text-[#7C3AED] transition-colors select-none">{'(•‿•)'}</span>
+      </Draggable>
+
+      {/* Classic Windows cursor — bottom right */}
+      <Draggable className="pointer-events-auto" style={{ bottom: '20%', right: '8%' }}>
+        <svg className="w-8 h-10 drop-shadow-md" viewBox="0 0 28 36" fill="none">
+          <path d="M2 2L2 28L8.5 21.5L14 33L18 31L12.5 19.5L22 19.5L2 2Z" fill="white" stroke="#1A1A1A" strokeWidth="2" strokeLinejoin="round" />
+        </svg>
+      </Draggable>
+
+      {/* Mini notepad window — left mid */}
+      <Draggable className="pointer-events-auto" style={{ top: '30%', left: '2%' }}>
+        <div className="w-[150px] rounded-md border border-gray-300/80 bg-white shadow-md overflow-hidden -rotate-2">
+          <div className="flex items-center justify-between px-2 py-1 bg-gradient-to-r from-[#F3F2EF] to-[#E8E6E1] border-b border-gray-200/80">
+            <span className="text-[9px] text-[#8A8A8A] font-mono">notas.txt</span>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-sm bg-gray-300/80" />
+              <div className="w-2 h-2 rounded-sm bg-gray-300/80" />
+              <div className="w-2 h-2 rounded-sm bg-red-400/80" />
+            </div>
+          </div>
+          <div className="px-2 py-2 text-[10px] text-[#4A4A4A] font-mono leading-relaxed">
+            todo: dominar o mundo<br />
+            (com ajuda do tico)
+          </div>
+        </div>
+      </Draggable>
+
+      {/* Kaomoji ¯\_(ツ)_/¯ — right mid-bottom */}
+      <Draggable className="pointer-events-auto" style={{ bottom: '35%', right: '3%' }}>
+        <span className="text-lg font-mono text-[#C4C4C4] hover:text-[#7C3AED] transition-colors select-none">{'¯\\_(ツ)_/¯'}</span>
+      </Draggable>
     </div>
   )
 }
@@ -233,6 +402,7 @@ function ActiveUsersCounter({ locale }: { locale: Locale }) {
 export default function Home() {
   const [authed, setAuthed] = useState(false)
   const [locale, setLocale] = useState<Locale>('pt-br')
+  const [annual, setAnnual] = useState(false)
 
   useEffect(() => {
     const cookieLocale = document.cookie.match(/locale=(pt-br|en)/)?.[1] as Locale | undefined
@@ -277,13 +447,25 @@ export default function Home() {
             </div>
             <span className="font-bold text-[15px] tracking-tight" style={{ fontFamily: 'Bricolage Grotesque' }}>tico</span>
           </div>
+
+          {/* System tray — retro Windows feel */}
+          <div className="hidden md:flex items-center gap-2 bg-[#F3F2EF] border border-gray-200/80 rounded-md px-3 py-1 text-[11px] text-[#8A8A8A] font-mono select-none">
+            <span>
+              <svg className="w-3 h-3 inline-block mr-1 -mt-px" fill="currentColor" viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+            </span>
+            <span className="text-[#10B981] font-semibold">{t('nav.trayOnline', locale)}</span>
+            <span className="text-[#C4C4C4]">|</span>
+            <SystemClock />
+          </div>
+
           <div className="flex items-center gap-6">
             <a href="#features" className="text-[13px] text-[#8A8A8A] hover:text-[#1A1A1A] transition hidden sm:block">{t('nav.features', locale)}</a>
             <a href="#pricing" className="text-[13px] text-[#8A8A8A] hover:text-[#1A1A1A] transition hidden sm:block">{t('nav.plans', locale)}</a>
             <a href="/updates" className="text-[13px] text-[#8A8A8A] hover:text-[#1A1A1A] transition hidden sm:block">{t('nav.updates', locale)}</a>
             <AuthNavButton locale={locale} />
             <LocaleToggle locale={locale} />
-            <a href={DOWNLOAD_URL} className="bg-[#1A1A1A] text-white text-[13px] font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition">
+            <a href={DOWNLOAD_URL} className="inline-flex items-center gap-2 bg-[#1A1A1A] text-white text-[13px] font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition">
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" /></svg>
               {t('nav.download', locale)}
             </a>
           </div>
@@ -291,8 +473,9 @@ export default function Home() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-14">
-        <div className="max-w-6xl mx-auto px-6 w-full">
+      <section className="pt-14 relative">
+        <HeroFloatingElements />
+        <div className="max-w-6xl mx-auto px-6 w-full relative">
           <div className="text-center pt-16 lg:pt-24 pb-12">
             <div className="animate-in">
               <span className="inline-block bg-[#7C3AED]/8 text-[#7C3AED] text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-full mb-6 border border-[#7C3AED]/15">
@@ -327,19 +510,21 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Demo Video */}
+          {/* Demo Video — Windows window frame */}
           <div className="animate-in delay-4 relative max-w-4xl mx-auto mb-16">
             <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-[#7C3AED]/15 to-[#A78BFA]/15 blur-2xl" />
-            <video
-              className="relative w-full rounded-2xl shadow-[0_20px_80px_rgba(124,58,237,0.2)] border border-gray-200/50"
-              controls
-              muted
-              autoPlay
-              playsInline
-              loop
-            >
-              <source src="https://tzpwebrpnqqygzpqxznb.supabase.co/storage/v1/object/public/public-assets/TicoPresentation.mp4" type="video/mp4" />
-            </video>
+            <WinFrame title="TicoPresentation.mp4">
+              <video
+                className="w-full"
+                controls
+                muted
+                autoPlay
+                playsInline
+                loop
+              >
+                <source src="https://tzpwebrpnqqygzpqxznb.supabase.co/storage/v1/object/public/public-assets/TicoPresentation.mp4" type="video/mp4" />
+              </video>
+            </WinFrame>
           </div>
         </div>
       </section>
@@ -362,6 +547,35 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Manifesto — "a ideia" */}
+      <section className="py-20">
+        <div className="max-w-2xl mx-auto px-6">
+          <WinFrame title="a-ideia.txt">
+            <div className="px-6 py-6 md:px-8 md:py-8 bg-[#FFFEF9]">
+              <h2 className="text-xl font-bold tracking-tight mb-5 text-[#7C3AED] lowercase" style={{ fontFamily: 'Bricolage Grotesque' }}>
+                {t('manifesto.title', locale)}
+              </h2>
+              <div className="text-[14px] text-[#4A4A4A] leading-relaxed space-y-3 font-mono">
+                {t('manifesto.text', locale).split('\n').map((line, i) => (
+                  <p key={i}>{line}</p>
+                ))}
+              </div>
+              <div className="mt-6 pt-4 border-t border-gray-200/60 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">P</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-[#1A1A1A]">{t('manifesto.author', locale)}</p>
+                  <a href="https://www.linkedin.com/company/ticoai" target="_blank" rel="noopener noreferrer" className="text-xs text-[#7C3AED] hover:underline">
+                    linkedin/ticoai
+                  </a>
+                </div>
+              </div>
+            </div>
+          </WinFrame>
+        </div>
+      </section>
+
       {/* Use Cases */}
       <section id="features" className="py-24">
         <div className="max-w-6xl mx-auto px-6">
@@ -373,15 +587,31 @@ export default function Home() {
               {t('features.subtitle', locale)}
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {featureItems.map((item, i) => (
-              <div key={i}
-                className="group relative bg-white border border-gray-200/70 rounded-2xl px-6 py-5 hover:border-[#7C3AED]/30 hover:shadow-lg hover:shadow-purple-500/5 transition-all duration-300"
-              >
-                <span className="text-[10px] font-bold tracking-widest uppercase text-[#7C3AED] mb-2 block">{t(item.tagKey, locale)}</span>
-                <p className="text-[15px] text-[#4A4A4A] leading-relaxed italic">{t(item.textKey, locale)}</p>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {featureItems.map((item, i) => {
+              const filenames = ['tico-davinci.mp4', 'tico-copy.mp4', 'tico-afterfx.mp4', 'tico-figma.mp4', 'tico-vscode.mp4', 'tico-darkmode.mp4']
+              return (
+                <div key={i} className="group rounded-lg border border-gray-300/80 bg-white shadow-sm hover:shadow-lg hover:shadow-purple-500/5 transition-all duration-300 overflow-hidden">
+                  {/* Mini title bar */}
+                  <div className="flex items-center justify-between px-3 py-1.5 bg-gradient-to-r from-[#F3F2EF] to-[#E8E6E1] border-b border-gray-200/80">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#7C3AED]/40" />
+                      <span className="text-[9px] text-[#8A8A8A] font-mono">{filenames[i]}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 rounded-sm bg-gray-300/60" />
+                      <div className="w-2 h-2 rounded-sm bg-gray-300/60" />
+                      <div className="w-2 h-2 rounded-sm bg-red-300/60" />
+                    </div>
+                  </div>
+                  {/* Content */}
+                  <div className="px-5 py-4">
+                    <span className="text-[10px] font-bold tracking-widest uppercase text-[#7C3AED] mb-2 block">{t(item.tagKey, locale)}</span>
+                    <p className="text-[15px] text-[#4A4A4A] leading-relaxed italic">{t(item.textKey, locale)}</p>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -389,41 +619,86 @@ export default function Home() {
       {/* How it works */}
       <section className="py-24 bg-[#F3F2EF]">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-16" style={{ fontFamily: 'Bricolage Grotesque' }}>{t('how.title', locale)}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {steps.map((item, i) => (
-              <div key={i}>
-                <span className="text-5xl font-black text-[#7C3AED]/10 block mb-3" style={{ fontFamily: 'Bricolage Grotesque' }}>
-                  {item.step}
-                </span>
-                <h3 className="text-lg font-bold mb-2">{t(item.titleKey, locale)}</h3>
-                <p className="text-[15px] text-[#8A8A8A] leading-relaxed">{t(item.descKey, locale)}</p>
-              </div>
-            ))}
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-4" style={{ fontFamily: 'Bricolage Grotesque' }}>{t('how.title', locale)}</h2>
+          <p className="text-center text-[#8A8A8A] text-sm font-mono mb-14">{'(•‿•) →'} F8 {'→ ✨'}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {steps.map((item, i) => {
+              const stepFiles = ['01-falar.exe', '02-contexto.exe', '03-guiar.exe']
+              return (
+                <div key={i} className="rounded-lg border border-gray-300/80 bg-white shadow-sm overflow-hidden">
+                  <div className="flex items-center justify-between px-3 py-1.5 bg-gradient-to-r from-[#F3F2EF] to-[#E8E6E1] border-b border-gray-200/80">
+                    <div className="flex items-center gap-1.5">
+                      <svg className="w-3 h-3 text-[#7C3AED]/60" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" /></svg>
+                      <span className="text-[9px] text-[#8A8A8A] font-mono">{stepFiles[i]}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 rounded-sm bg-gray-300/60" />
+                      <div className="w-2 h-2 rounded-sm bg-gray-300/60" />
+                      <div className="w-2 h-2 rounded-sm bg-red-300/60" />
+                    </div>
+                  </div>
+                  <div className="px-5 py-5">
+                    <span className="text-4xl font-black text-[#7C3AED]/10 block mb-2" style={{ fontFamily: 'Bricolage Grotesque' }}>
+                      {item.step}
+                    </span>
+                    <h3 className="text-lg font-bold mb-2">{t(item.titleKey, locale)}</h3>
+                    <p className="text-[15px] text-[#8A8A8A] leading-relaxed">{t(item.descKey, locale)}</p>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
 
+      {/* Marquee banner */}
+      <div className="py-4 bg-[#1A1A1A] overflow-hidden select-none">
+        <div className="animate-marquee flex whitespace-nowrap">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <span key={i} className="mx-8 text-sm font-bold tracking-widest uppercase text-white/60">
+              {t('marquee.text', locale)} {'·'} {'(•‿•)'} {'·'}
+            </span>
+          ))}
+        </div>
+      </div>
+
       {/* Testimonials */}
       <section className="py-24">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-14" style={{ fontFamily: 'Bricolage Grotesque' }}>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-4" style={{ fontFamily: 'Bricolage Grotesque' }}>
             {t('testimonials.title', locale)}
           </h2>
+          <p className="text-center text-[#8A8A8A] text-sm mb-14 font-mono">
+            {'¯\\_(ツ)_/¯'} {locale === 'pt-br' ? 'nao acredita? pergunta pra eles' : "don't believe us? ask them"}
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white border border-gray-200/70 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
-                <div className="text-3xl text-[#7C3AED]/20 font-serif mb-3">&ldquo;</div>
-                <p className="text-[14px] text-[#4A4A4A] leading-relaxed mb-5 italic">
-                  {t(`testimonials.${i}.quote`, locale)}
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">{t(`testimonials.${i}.name`, locale)[0]}</span>
+              <div key={i} className="rounded-lg border border-gray-300/80 bg-white shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+                {/* Mini title bar */}
+                <div className="flex items-center justify-between px-3 py-1.5 bg-gradient-to-r from-[#F3F2EF] to-[#E8E6E1] border-b border-gray-200/80">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+                    <span className="text-[9px] text-[#8A8A8A] font-mono">depoimento-{String(i).padStart(2, '0')}.txt</span>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-[#1A1A1A]">{t(`testimonials.${i}.name`, locale)}</p>
-                    <p className="text-xs text-[#8A8A8A]">{t(`testimonials.${i}.role`, locale)}</p>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-sm bg-gray-300/60" />
+                    <div className="w-2 h-2 rounded-sm bg-gray-300/60" />
+                    <div className="w-2 h-2 rounded-sm bg-red-300/60" />
+                  </div>
+                </div>
+                <div className="p-5">
+                  <div className="text-2xl text-[#7C3AED]/20 font-serif mb-2">&ldquo;</div>
+                  <p className="text-[14px] text-[#4A4A4A] leading-relaxed mb-5 italic">
+                    {t(`testimonials.${i}.quote`, locale)}
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">{t(`testimonials.${i}.name`, locale)[0]}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#1A1A1A]">{t(`testimonials.${i}.name`, locale)}</p>
+                      <p className="text-xs text-[#8A8A8A]">{t(`testimonials.${i}.role`, locale)}</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -435,35 +710,59 @@ export default function Home() {
       {/* Pricing */}
       <section id="pricing" className="py-24">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-14">
+          <div className="text-center mb-6">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3" style={{ fontFamily: 'Bricolage Grotesque' }}>{t('pricing.title', locale)}</h2>
             <p className="text-[#8A8A8A] text-lg">{t('pricing.subtitle', locale)}</p>
           </div>
+
+          {/* Monthly / Annual toggle */}
+          <div className="flex items-center justify-center gap-3 mb-10">
+            <span className={`text-sm font-medium ${!annual ? 'text-[#1A1A1A]' : 'text-[#8A8A8A]'}`}>{t('pricing.monthly', locale)}</span>
+            <button
+              onClick={() => setAnnual(!annual)}
+              className={`relative w-12 h-6 rounded-full transition-colors cursor-pointer ${annual ? 'bg-[#7C3AED]' : 'bg-gray-300'}`}
+            >
+              <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${annual ? 'translate-x-6' : 'translate-x-0.5'}`} />
+            </button>
+            <span className={`text-sm font-medium ${annual ? 'text-[#1A1A1A]' : 'text-[#8A8A8A]'}`}>{t('pricing.annual', locale)}</span>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
             <PricingCard tier={t('plan.free', locale)} price={locale === 'en' ? '$0' : 'R$0'} period={t('plan.forever', locale)}
               features={[t('feat.10day', locale), t('feat.voice', locale), t('feat.cursor', locale), t('feat.sonnet', locale)]}
               cta={t('pricing.cta.free', locale)} href={DOWNLOAD_URL} />
-            <PricingCard tier={t('plan.pro', locale)} price={locale === 'en' ? '$9.99' : 'R$45'} period={t('plan.perMonth', locale)} highlight popularLabel={t('btn.popular', locale)}
+            <PricingCard tier={t('plan.pro', locale)}
+              price={locale === 'en' ? (annual ? '$7.99' : '$9.99') : (annual ? 'R$36' : 'R$45')}
+              period={annual ? (locale === 'en' ? '/mo billed yearly' : '/mes cobrado anual') : t('plan.perMonth', locale)}
+              highlight popularLabel={t('btn.popular', locale)}
               features={[t('feat.500month', locale), t('feat.voice', locale), t('feat.cursorPointing', locale), t('feat.sonnet', locale), t('feat.priority', locale)]}
               cta={t('pricing.cta.pro', locale)} href={subscribeHref} />
-            <PricingCard tier={t('plan.unlimited', locale)} price={locale === 'en' ? '$19.99' : 'R$99,90'} period={t('plan.perMonth', locale)}
+            <PricingCard tier={t('plan.unlimited', locale)}
+              price={locale === 'en' ? (annual ? '$15.99' : '$19.99') : (annual ? 'R$79,90' : 'R$99,90')}
+              period={annual ? (locale === 'en' ? '/mo billed yearly' : '/mes cobrado anual') : t('plan.perMonth', locale)}
               features={[t('feat.unlimited', locale), t('feat.voice', locale), t('feat.cursorPointing', locale), t('feat.opus', locale), t('feat.priority', locale), t('feat.earlyAccess', locale)]}
               cta={t('pricing.cta.unlimited', locale)} href={subscribeHref} />
           </div>
+          <p className="text-center text-[12px] text-[#8A8A8A] mt-6 font-mono">{t('pricing.microcopy', locale)}</p>
         </div>
       </section>
 
       {/* FAQ */}
       <section className="py-24 bg-[#F3F2EF]">
         <div className="max-w-3xl mx-auto px-6">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-14" style={{ fontFamily: 'Bricolage Grotesque' }}>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-3" style={{ fontFamily: 'Bricolage Grotesque' }}>
             {t('faq.title', locale)}
           </h2>
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <FaqItem key={i} question={t(`faq.${i}.q`, locale)} answer={t(`faq.${i}.a`, locale)} />
-            ))}
-          </div>
+          <p className="text-center text-[#8A8A8A] text-sm font-mono mb-12">
+            {locale === 'pt-br' ? 'sem letra miuda, sem pegadinha' : 'no fine print, no gotchas'} {'^ω^'}
+          </p>
+          <WinFrame title="faq.txt">
+            <div className="p-4 md:p-6 space-y-3 bg-[#FFFEF9]">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => (
+                <FaqItem key={i} question={t(`faq.${i}.q`, locale)} answer={t(`faq.${i}.a`, locale)} />
+              ))}
+            </div>
+          </WinFrame>
         </div>
       </section>
 
@@ -475,11 +774,15 @@ export default function Home() {
             <div className="absolute bottom-12 right-12 w-36 h-36 rounded-full border border-white/10" />
             <div className="absolute top-1/2 left-1/4 w-3 h-3 rounded-full bg-white/20" />
             <div className="absolute top-1/3 right-1/3 w-2 h-2 rounded-full bg-white/15" />
+            <p className="text-white/40 text-sm font-mono mb-4 relative">{'(•‿•)'}</p>
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 relative" style={{ fontFamily: 'Bricolage Grotesque' }}>
               {t('cta.title', locale)}
             </h2>
-            <p className="text-white/70 text-lg mb-8 max-w-md mx-auto relative">
+            <p className="text-white/70 text-lg mb-3 max-w-md mx-auto relative">
               {t('cta.desc', locale)}
+            </p>
+            <p className="text-white/40 text-xs font-mono mb-8 relative">
+              {locale === 'pt-br' ? 'sem plugin, sem integracao — so apertar F8.' : 'no plugins, no setup — just press F8.'}
             </p>
             <a href={DOWNLOAD_URL} className="relative inline-flex items-center gap-2.5 bg-white text-[#5B21B6] px-8 py-4 rounded-xl font-bold text-[15px] hover:bg-gray-100 transition shadow-xl">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -492,27 +795,69 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-10 border-t border-black/[0.04]">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] flex items-center justify-center">
-              <div className="flex gap-[2px]">
-                <div className="w-[2px] h-[2px] rounded-full bg-white" />
-                <div className="w-[2px] h-[2px] rounded-full bg-white" />
+      <footer className="py-12 border-t border-black/[0.04]">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+            {/* Brand */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] flex items-center justify-center">
+                  <div className="flex gap-[2px]">
+                    <div className="w-[2px] h-[2px] rounded-full bg-white" />
+                    <div className="w-[2px] h-[2px] rounded-full bg-white" />
+                  </div>
+                </div>
+                <span className="text-[14px] font-bold tracking-tight" style={{ fontFamily: 'Bricolage Grotesque' }}>tico</span>
+              </div>
+              <p className="text-[12px] text-[#8A8A8A] leading-relaxed">
+                {t('footer.credit', locale)} <a className="text-[#7C3AED] hover:underline" href="https://ticoai.app" target="_blank">{t('footer.team', locale)}</a><br />
+                {t('footer.tagline', locale)}
+              </p>
+            </div>
+
+            {/* Produto */}
+            <div>
+              <p className="text-[11px] font-bold tracking-widest uppercase text-[#8A8A8A] mb-3">{t('footer.product', locale)}</p>
+              <div className="space-y-2">
+                <a href="#features" className="block text-[13px] text-[#4A4A4A] hover:text-[#7C3AED] transition">{t('nav.features', locale)}</a>
+                <a href="#pricing" className="block text-[13px] text-[#4A4A4A] hover:text-[#7C3AED] transition">{t('nav.plans', locale)}</a>
+                <a href="/updates" className="block text-[13px] text-[#4A4A4A] hover:text-[#7C3AED] transition">{t('nav.updates', locale)}</a>
               </div>
             </div>
-            <span className="text-[13px] font-semibold tracking-tight" style={{ fontFamily: 'Bricolage Grotesque' }}>tico</span>
+
+            {/* Recursos */}
+            <div>
+              <p className="text-[11px] font-bold tracking-widest uppercase text-[#8A8A8A] mb-3">{t('footer.resources', locale)}</p>
+              <div className="space-y-2">
+                <a href="/privacy" className="block text-[13px] text-[#4A4A4A] hover:text-[#7C3AED] transition">{t('footer.privacy', locale)}</a>
+                <a href="/terms" className="block text-[13px] text-[#4A4A4A] hover:text-[#7C3AED] transition">{t('footer.terms', locale)}</a>
+                <a href="mailto:support@ticoai.app" className="block text-[13px] text-[#4A4A4A] hover:text-[#7C3AED] transition">{t('footer.support', locale)}</a>
+              </div>
+            </div>
+
+            {/* Conectar */}
+            <div>
+              <p className="text-[11px] font-bold tracking-widest uppercase text-[#8A8A8A] mb-3">{t('footer.connect', locale)}</p>
+              <div className="space-y-2">
+                <a href="https://www.linkedin.com/company/ticoai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[13px] text-[#4A4A4A] hover:text-[#7C3AED] transition">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                  LinkedIn
+                </a>
+                <a href="https://instagram.com/ticoai.app" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[13px] text-[#4A4A4A] hover:text-[#7C3AED] transition">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                  Instagram
+                </a>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            <p className="text-[12px] text-[#8A8A8A]">{t('footer.credit', locale)} <a className='text-blue-500' href="https://ticoai.app" target='_blank'>{t('footer.team', locale)}</a> {t('footer.tagline', locale)}</p>
-            <span className="text-[#D1D1D1]">·</span>
-            <a href="/terms" className="text-[12px] text-[#8A8A8A] hover:text-[#1A1A1A] transition">{t('footer.terms', locale)}</a>
-            <a href="/privacy" className="text-[12px] text-[#8A8A8A] hover:text-[#1A1A1A] transition">{t('footer.privacy', locale)}</a>
-            <a href="https://www.linkedin.com/company/ticoai" target="_blank" rel="noopener noreferrer" className="text-[#8A8A8A] hover:text-[#1A1A1A] transition">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-              </svg>
-            </a>
+
+          {/* Privacy disclaimer + bottom bar */}
+          <div className="border-t border-gray-200/60 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-[11px] text-[#8A8A8A] font-mono flex items-center gap-1.5">
+              <svg className="w-3 h-3 text-[#10B981]" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+              {t('footer.privacyNote', locale)}
+            </p>
+            <p className="text-[11px] text-[#C4C4C4]">&copy; {new Date().getFullYear()} tico</p>
           </div>
         </div>
       </footer>

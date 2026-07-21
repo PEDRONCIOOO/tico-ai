@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header>
+      <div class="header-left">
+        <div class="tico-face"><div class="eye"></div><div class="eye"></div></div>
+        <span class="header-title">tico</span>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="history">history</button>
+        <button class="tab" data-tab="settings">settings</button>
+      </div>
+    </header>
+
+    <!-- History Tab -->
+    <div id="history-tab" class="tab-content active">
+      <div id="entries"></div>
+      <div id="empty-state" class="empty">no conversations yet.<br>hold Alt+T to talk!</div>
+      <button id="clear-btn" class="btn-clear" style="display:none">clear history</button>
+    </div>
+
+    <!-- Settings Tab -->
+    <div id="settings-tab" class="tab-content">
+      <!-- Model -->
+      <div class="card">
+        <div class="card-row">
+          <span class="label">Model</span>
+          <div class="segmented">
+            <button class="seg-btn active" data-model="claude-sonnet-4-6">Sonnet</button>
+            <button class="seg-btn" data-model="claude-haiku-4-5-20251001">Haiku</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Voice -->
+      <div class="card">
+        <div class="card-row">
+          <span class="label">Voice</span>
+          <select id="voice-select">
+            <option value="nova">Nova (feminine)</option>
+            <option value="shimmer">Shimmer (feminine)</option>
+            <option value="alloy">Alloy (neutral)</option>
+            <option value="echo">Echo (masculine)</option>
+            <option value="onyx">Onyx (masculine)</option>
+            <option value="fable">Fable (neutral)</option>
+          </select>
+        </div>
+        <div class="card-row" style="margin-top: 12px;">
+          <span class="label">Volume</span>
+          <div class="volume-control">
+            <input type="range" id="volume-slider" min="0" max="100" value="100" class="slider">
+            <span id="volume-value" class="volume-value">100%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appearance -->
+      <div class="card">
+        <div class="card-row">
+          <span class="label">Appearance</span>
+          <div class="segmented">
+            <button class="seg-btn active" data-style="default">Default</button>
+            <button class="seg-btn" data-style="cursor">Cursor</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toggles -->
+      <div class="card">
+        <div class="card-row">
+          <span class="label">Show Tico</span>
+          <label class="toggle">
+            <input type="checkbox" id="show-buddy-toggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="card-row" style="margin-top: 12px;">
+          <span class="label">Chat History</span>
+          <label class="toggle">
+            <input type="checkbox" id="chat-history-toggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Shortcut -->
+      <div class="card">
+        <div class="card-row">
+          <span class="label">Shortcut</span>
+          <button id="shortcut-btn" class="shortcut-display" title="Click to change">Alt+T</button>
+        </div>
+        <div id="shortcut-hint" class="shortcut-hint" style="display:none">press any key or combo (F8, Ctrl+K, Alt+T...)</div>
+      </div>
+
+      <div class="footer">tico v1.0.0 · ticoai.app</div>
+    </div>
+  </div>
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>

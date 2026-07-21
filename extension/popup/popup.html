@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Login view -->
+    <div id="login-view" style="display: none;">
+      <div class="header">
+        <div class="tico-face"><div class="eye"></div><div class="eye"></div></div>
+        <span class="header-title">tico</span>
+      </div>
+      <div class="content">
+        <form id="login-form">
+          <input type="email" id="email" placeholder="email" required autocomplete="email">
+          <input type="password" id="password" placeholder="password" required autocomplete="current-password">
+          <button type="submit" id="login-btn">entrar</button>
+          <div id="error" class="error"></div>
+        </form>
+        <a id="register-link" class="link" target="_blank">criar conta</a>
+      </div>
+    </div>
+
+    <!-- Status view -->
+    <div id="status-view" style="display: none;">
+      <div class="header">
+        <div class="header-left">
+          <div class="tico-face"><div class="eye"></div><div class="eye"></div></div>
+          <span class="header-title">tico</span>
+        </div>
+        <button id="settings-btn" class="icon-btn" title="settings">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+        </button>
+      </div>
+
+      <div class="content">
+        <!-- Account card -->
+        <div class="card">
+          <div class="card-header">
+            <span class="section-label">ACCOUNT</span>
+            <span id="user-tier" class="tier-badge"></span>
+          </div>
+          <div id="user-email" class="email"></div>
+          <div id="usage-text" class="usage-text"></div>
+          <div class="usage-bar-bg">
+            <div id="usage-bar" class="usage-bar"></div>
+          </div>
+          <div id="usage-remaining" class="usage-remaining"></div>
+        </div>
+
+        <!-- Hotkey tip -->
+        <div class="hotkey-tip">
+          hold <kbd id="hotkey-display">Alt+T</kbd> to talk
+        </div>
+
+        <!-- Mic status -->
+        <div id="mic-status"></div>
+
+        <!-- Logout -->
+        <div class="logout-row">
+          <a id="logout-btn" class="logout-link">logout</a>
+        </div>
+      </div>
+
+      <div class="footer">tico v1.0.0 · ticoai.app</div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading-view">
+      <div class="tico-face large"><div class="eye"></div><div class="eye"></div></div>
+      <div class="spinner"></div>
+    </div>
+  </div>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>TicoAI — Setup</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f0a1a;
+      color: #e2e0e7;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .card {
+      background: #1a1428;
+      border: 1px solid #2d2640;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 400px;
+      text-align: center;
+    }
+    .logo { font-size: 36px; font-weight: 700; color: #a855f7; letter-spacing: -1px; margin-bottom: 8px; }
+    .subtitle { color: #9f8fc0; font-size: 14px; margin-bottom: 24px; }
+    .icon { font-size: 48px; margin-bottom: 16px; }
+    h2 { font-size: 18px; margin-bottom: 8px; color: #e2e0e7; }
+    p { font-size: 13px; color: #9f8fc0; line-height: 1.5; margin-bottom: 20px; }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #7c3aed;
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: #6d28d9; }
+    .status { margin-top: 16px; font-size: 13px; min-height: 20px; }
+    .granted { color: #10b981; }
+    .denied { color: #ef4444; }
+    .close-hint { color: #6b5f80; font-size: 12px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">tico</div>
+    <div class="subtitle">one-time setup</div>
+    <h2>Microphone Access</h2>
+    <p>Tico needs your microphone to hear your voice when you press Alt+T. This permission is only asked once.</p>
+    <button id="grant-btn">Allow Microphone</button>
+    <div id="status" class="status"></div>
+  </div>
+  <script src="permissions.js"></script>
+</body>
+</html>

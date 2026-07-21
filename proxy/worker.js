@@ -42,6 +42,7 @@ const ALLOWED_MODELS = new Set([
 const MAX_TOKENS_MIN = 256;
 const MAX_TOKENS_MAX = 8192;
 const TTS_TEXT_MAX_LENGTH = 5000;
+const ALLOWED_TTS_VOICES = new Set(["alloy", "echo", "fable", "onyx", "nova", "shimmer"]);
 
 // ─── Entry point ─────────────────────────────────────────────────────
 
@@ -284,10 +285,16 @@ async function handleTranscribe(request, env, _userId, cors) {
 
   // Assemble a clean multipart body that OpenAI will accept
   const enc = new TextEncoder();
+  // Detect audio format: prefer explicit header, fall back to multipart parsing
+  const detectedType = request.headers.get('X-Audio-Content-Type')
+    || extractPartHeaders(audioBytes, boundary)?.contentType
+    || 'audio/wav';
+  const ext = detectedType.includes('webm') ? 'webm' : detectedType.includes('mp4') ? 'mp4' : 'wav';
+
   const filePart = [
     `--${freshBoundary}\r\n`,
-    `Content-Disposition: form-data; name="file"; filename="audio.wav"\r\n`,
-    `Content-Type: audio/wav\r\n\r\n`,
+    `Content-Disposition: form-data; name="file"; filename="audio.${ext}"\r\n`,
+    `Content-Type: ${detectedType}\r\n\r\n`,
   ].join("");
   const modelPart = [
     `\r\n--${freshBoundary}\r\n`,
@@ -355,7 +362,7 @@ async function handleTts(request, env, _userId, cors) {
     body: JSON.stringify({
       model: "tts-1",
       input: text,
-      voice: "nova",
+      voice: ALLOWED_TTS_VOICES.has(body.voice) ? body.voice : "nova",
       response_format: "mp3",
     }),
   });
@@ -389,11 +396,11 @@ async function handleUsage(env, userId, cors) {
 function corsHeaders(origin) {
   const headers = {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Audio-Content-Type",
     "Vary": "Origin",
     "X-Content-Type-Options": "nosniff",
   };
-  if (origin && ALLOWED_ORIGINS.has(origin)) {
+  if (origin && (ALLOWED_ORIGINS.has(origin) || origin.startsWith("chrome-extension://"))) {
     headers["Access-Control-Allow-Origin"] = origin;
   }
   return headers;
@@ -446,4 +453,22 @@ function indexOf(haystack, needle, from) {
     return i;
   }
   return -1;
+}
+
+function extractPartHeaders(data, boundary) {
+  const enc = new TextEncoder();
+  const delim = enc.encode("--" + boundary);
+  let pos = indexOf(data, delim, 0);
+  if (pos < 0) return null;
+  pos += delim.length;
+  while (pos < data.length && (data[pos] === 0x0d || data[pos] === 0x0a)) pos++;
+
+  const sep = enc.encode("\r\n\r\n");
+  const headerEnd = indexOf(data, sep, pos);
+  if (headerEnd < 0) return null;
+
+  const headerBytes = data.slice(pos, headerEnd);
+  const headerStr = new TextDecoder().decode(headerBytes).toLowerCase();
+  const ctMatch = headerStr.match(/content-type:\s*([^\r\n;]+)/);
+  return { contentType: ctMatch ? ctMatch[1].trim() : null };
 }

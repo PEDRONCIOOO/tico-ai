@@ -130,8 +130,11 @@ const dict: Record<string, Record<Locale, string>> = {
 
   // Landing — pricing
   'pricing.title': { 'pt-br': 'planos simples', en: 'simple plans' },
-  'pricing.subtitle': { 'pt-br': 'comece de graça. escale quando fizer sentido.', en: 'start free. scale when it makes sense.' },
-  'pricing.cta.free': { 'pt-br': 'baixar grátis', en: 'download free' },
+  'pricing.subtitle': { 'pt-br': 'comece de graca. escale quando fizer sentido.', en: 'start free. scale when it makes sense.' },
+  'pricing.monthly': { 'pt-br': 'mensal', en: 'monthly' },
+  'pricing.annual': { 'pt-br': 'anual (-20%)', en: 'annual (-20%)' },
+  'pricing.microcopy': { 'pt-br': 'cancela quando quiser, num clique.', en: 'cancel anytime, one click.' },
+  'pricing.cta.free': { 'pt-br': 'baixar gratis', en: 'download free' },
   'pricing.cta.pro': { 'pt-br': 'assinar pro', en: 'subscribe pro' },
   'pricing.cta.unlimited': { 'pt-br': 'assinar ilimitado', en: 'subscribe unlimited' },
 
@@ -143,9 +146,14 @@ const dict: Record<string, Record<Locale, string>> = {
   // Landing — footer
   'footer.credit': { 'pt-br': 'feito por', en: 'made by' },
   'footer.team': { 'pt-br': 'Equipe Tico', en: 'Tico Team' },
-  'footer.tagline': { 'pt-br': 'pra quem quer aprender mais rápido', en: 'for those who want to learn faster' },
+  'footer.tagline': { 'pt-br': 'pra quem quer aprender mais rapido', en: 'for those who want to learn faster' },
   'footer.terms': { 'pt-br': 'termos', en: 'terms' },
   'footer.privacy': { 'pt-br': 'privacidade', en: 'privacy' },
+  'footer.product': { 'pt-br': 'produto', en: 'product' },
+  'footer.resources': { 'pt-br': 'recursos', en: 'resources' },
+  'footer.connect': { 'pt-br': 'conectar', en: 'connect' },
+  'footer.support': { 'pt-br': 'suporte', en: 'support' },
+  'footer.privacyNote': { 'pt-br': 'o tico so ve sua tela quando voce segura o F8 — nada e gravado.', en: 'tico only sees your screen when you hold F8 — nothing is recorded.' },
 
   // Updates page
   'updates.back': { 'pt-br': 'voltar', en: 'back' },
@@ -217,6 +225,21 @@ const dict: Record<string, Record<Locale, string>> = {
   'privacy.10.title': { 'pt-br': '10. contato', en: '10. contact' },
   'privacy.10.text': { 'pt-br': 'duvidas sobre privacidade? entre em contato:', en: 'questions about privacy? contact us:' },
 
+  // Nav — system tray
+  'nav.trayOnline': { 'pt-br': 'tico ● online', en: 'tico ● online' },
+
+  // Hero — manifesto / "a ideia"
+  'manifesto.title': { 'pt-br': 'a ideia', en: 'the idea' },
+  'manifesto.text': {
+    'pt-br': 'todo mundo tem acesso aos mesmos modelos de IA — mas quase ninguem destrava o poder deles.\na gente acha que e problema de interface. IA boa demais presa em caixinha de chat e terminal chato.\no tico tira a IA do chat e coloca do lado do seu cursor, falando portugues, apontando na tela.\na gente ta tentando descobrir a interface de IA que o proximo milhao de brasileiros vai usar de verdade.\nta no comeco! testa o que a gente tem hoje e me conta o que achou.',
+    en: 'everyone has access to the same AI models — but almost nobody unlocks their real power.\nwe think it\'s an interface problem. amazing AI trapped in chat boxes and boring terminals.\ntico takes AI out of the chat and puts it next to your cursor, speaking your language, pointing on screen.\nwe\'re trying to figure out the AI interface the next million people will actually use.\nit\'s early! try what we have today and tell us what you think.',
+  },
+  'manifesto.author': { 'pt-br': 'Pedro, fundador do Tico', en: 'Pedro, founder of Tico' },
+
+  // Marquee
+  'marquee.text': { 'pt-br': 'quem usa, recomenda', en: 'loved by users' },
+  'social.counter': { 'pt-br': 'usuarios no brasil e crescendo', en: 'users in brazil and growing' },
+
   // Trust badges
   'trust.poweredBy': { 'pt-br': 'powered by Claude', en: 'powered by Claude' },
   'trust.encrypted': { 'pt-br': 'criptografia 256-bit', en: '256-bit encrypted' },
@@ -248,6 +271,12 @@ const dict: Record<string, Record<Locale, string>> = {
   'faq.5.a': { 'pt-br': 'nao. screenshots sao capturados apenas quando voce aperta a tecla, processados instantaneamente e descartados.', en: 'no. screenshots are captured only when you press the hotkey, processed instantly, and discarded.' },
   'faq.6.q': { 'pt-br': 'posso usar em portugues e ingles?', en: 'can I use it in Portuguese and English?' },
   'faq.6.a': { 'pt-br': 'sim, o tico detecta seu idioma automaticamente e responde na mesma lingua.', en: 'yes, tico detects your language automatically and responds in the same language.' },
+  'faq.7.q': { 'pt-br': 'o que o tico faz de verdade?', en: 'what does tico actually do?' },
+  'faq.7.a': { 'pt-br': 'voce segura o F8, faz sua pergunta em voz alta, e o tico vê sua tela, entende o contexto e te guia falando e apontando pro lugar certo. funciona com qualquer app do windows.', en: 'you hold F8, ask your question out loud, and tico sees your screen, understands the context, and guides you by speaking and pointing to the right spot. works with any windows app.' },
+  'faq.8.q': { 'pt-br': 'o tico fica olhando minha tela o tempo todo?', en: 'is tico watching my screen all the time?' },
+  'faq.8.a': { 'pt-br': 'nao. o tico so ve a tela quando voce segura o F8. fora isso, ele nao captura nada. nenhum screenshot e armazenado — tudo e processado em tempo real e descartado.', en: 'no. tico only sees the screen when you hold F8. otherwise, it captures nothing. no screenshots are stored — everything is processed in real-time and discarded.' },
+  'faq.9.q': { 'pt-br': 'qual a diferenca entre os planos?', en: 'what is the difference between plans?' },
+  'faq.9.a': { 'pt-br': 'o plano gratis tem 10 usos por dia com claude sonnet. o pro tem 500/mes com pointing e suporte prioritario. o ilimitado nao tem limite e usa claude opus, o modelo mais inteligente.', en: 'the free plan has 10 uses per day with claude sonnet. pro has 500/month with pointing and priority support. unlimited has no limit and uses claude opus, the smartest model.' },
 
   // Login page
   'login.title': { 'pt-br': 'entrar', en: 'log in' },
