@@ -148,7 +148,7 @@ function Draggable({ children, className = '', style }: { children: React.ReactN
 }
 
 // ─── Hero Floating Elements (Windows desktop items) ──────────────
-function HeroFloatingElements() {
+function HeroFloatingElements({ locale }: { locale: Locale }) {
   return (
     <div className="hidden lg:block absolute inset-0 overflow-hidden pointer-events-none">
       {/* Recycle Bin — top left */}
@@ -162,7 +162,7 @@ function HeroFloatingElements() {
             <line x1="24" y1="20" x2="24" y2="36" stroke="#B0ADA8" strokeWidth="1.5" strokeLinecap="round" />
             <line x1="29" y1="20" x2="29" y2="36" stroke="#B0ADA8" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
-          <span className="text-[10px] text-[#8A8A8A] font-mono">lixeira</span>
+          <span className="text-[10px] text-[#8A8A8A] font-mono">{t('hero.recycleBin', locale)}</span>
         </div>
       </Draggable>
 
@@ -173,7 +173,7 @@ function HeroFloatingElements() {
             <path d="M6 14h14l4-4h18a2 2 0 012 2v26a2 2 0 01-2 2H6a2 2 0 01-2-2V16a2 2 0 012-2z" fill="#FBBF24" stroke="#D4A017" strokeWidth="1.2" />
             <path d="M4 18h40v20a2 2 0 01-2 2H6a2 2 0 01-2-2V18z" fill="#FCD34D" />
           </svg>
-          <span className="text-[10px] text-[#8A8A8A] font-mono">meus arquivos</span>
+          <span className="text-[10px] text-[#8A8A8A] font-mono">{t('hero.myFiles', locale)}</span>
         </div>
       </Draggable>
 
@@ -187,7 +187,7 @@ function HeroFloatingElements() {
         <div className="w-[140px] rotate-3">
           <div className="bg-white rounded-lg border-2 border-red-400 shadow-md overflow-hidden">
             <div className="bg-red-400 px-3 py-1">
-              <p className="text-[8px] text-white font-bold uppercase tracking-wider text-center">ola, meu nome e</p>
+              <p className="text-[8px] text-white font-bold uppercase tracking-wider text-center">{t('hero.nameTag', locale)}</p>
             </div>
             <div className="px-3 py-2 text-center">
               <p className="text-xl font-bold text-[#7C3AED]" style={{ fontFamily: 'Bricolage Grotesque' }}>tico</p>
@@ -212,7 +212,7 @@ function HeroFloatingElements() {
       <Draggable className="pointer-events-auto" style={{ top: '30%', left: '2%' }}>
         <div className="w-[150px] rounded-md border border-gray-300/80 bg-white shadow-md overflow-hidden -rotate-2">
           <div className="flex items-center justify-between px-2 py-1 bg-gradient-to-r from-[#F3F2EF] to-[#E8E6E1] border-b border-gray-200/80">
-            <span className="text-[9px] text-[#8A8A8A] font-mono">notas.txt</span>
+            <span className="text-[9px] text-[#8A8A8A] font-mono">{t('hero.notepadTitle', locale)}</span>
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-sm bg-gray-300/80" />
               <div className="w-2 h-2 rounded-sm bg-gray-300/80" />
@@ -220,8 +220,8 @@ function HeroFloatingElements() {
             </div>
           </div>
           <div className="px-2 py-2 text-[10px] text-[#4A4A4A] font-mono leading-relaxed">
-            todo: dominar o mundo<br />
-            (com ajuda do tico)
+            {t('hero.notepadLine1', locale)}<br />
+            {t('hero.notepadLine2', locale)}
           </div>
         </div>
       </Draggable>
@@ -474,7 +474,7 @@ export default function Home() {
 
       {/* Hero */}
       <section className="pt-14 relative">
-        <HeroFloatingElements />
+        <HeroFloatingElements locale={locale} />
         <div className="max-w-6xl mx-auto px-6 w-full relative">
           <div className="text-center pt-16 lg:pt-24 pb-12">
             <div className="animate-in">

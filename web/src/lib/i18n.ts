@@ -119,6 +119,14 @@ const dict: Record<string, Record<Locale, string>> = {
   'features.nav.tag': { 'pt-br': 'navegação', en: 'navigation' },
   'features.nav.text': { 'pt-br': '"aonde clico pra trocar pra dark mode?"', en: '"where do I click to switch to dark mode?"' },
 
+  // Landing — hero floating elements
+  'hero.recycleBin': { 'pt-br': 'lixeira', en: 'recycle bin' },
+  'hero.myFiles': { 'pt-br': 'meus arquivos', en: 'my files' },
+  'hero.nameTag': { 'pt-br': 'ola, meu nome e', en: 'hello, my name is' },
+  'hero.notepadTitle': { 'pt-br': 'notas.txt', en: 'notes.txt' },
+  'hero.notepadLine1': { 'pt-br': 'todo: dominar o mundo', en: 'todo: take over the world' },
+  'hero.notepadLine2': { 'pt-br': '(com ajuda do tico)', en: '(with tico\'s help)' },
+
   // Landing — how it works
   'how.title': { 'pt-br': 'como funciona', en: 'how it works' },
   'how.step1.title': { 'pt-br': 'aperte F8 e fale', en: 'press F8 and speak' },
